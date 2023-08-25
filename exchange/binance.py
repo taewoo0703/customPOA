@@ -354,3 +354,237 @@ class Binance:
         if is_futures:
             trades = self.client.fetch_my_trades()
             print(trades)
+
+##############################################################################
+# by PTW
+##############################################################################
+
+    # by PTW
+    # hatiko용 get_amount
+    def get_amount_hatiko(self, symbol, nMaxLong, nMaxShort) -> float:
+        # Long Entry
+        if self.order_info.is_entry and self.order_info.side in ("buy"):
+            total_bal = float(self.client.fetch_balance().get('info').get('totalCrossWalletBalance'))
+            cash = total_bal / 4.0 / nMaxLong     # 총 자본을 4분할 + nMaxLong종목 몰빵
+            cash = cash * 100.0 / 70.0  # 청산당할 MDD를 70%로 설정하기 때문에 100/70을 곱함.
+            current_price = self.get_price(symbol)
+            result = cash / current_price
+            
+        # Short Entry
+        if self.order_info.is_entry and self.order_info.side in ("sell"):
+            total_bal = float(self.client.fetch_balance().get('info').get('totalCrossWalletBalance'))
+            cash = total_bal / 4.0 / nMaxShort    # 총 자본을 4분할 + nMaxShort종목 몰빵
+            cash = cash * 100.0 / 150.0  # 청산당할 MDD를 150%로 설정하기 때문에 100/150을 곱함.
+            current_price = self.get_price(symbol)
+            result = cash / current_price
+
+        # Long Exit & Short Exit
+        if self.order_info.is_close:
+            symbol = self.order_info.unified_symbol
+            free_amount = self.get_futures_position_hatiko(symbol) if self.order_info.is_crypto and self.order_info.is_futures else self.get_balance_hatiko(self.order_info.base)
+            result = free_amount        # 팔 때는 100% 전량 매도함
+
+        return result
+    
+    # by PTW
+    # hatiko용 get_balance
+    # "거래할 수량이 없습니다" Error를 발생시키지 않음.
+    # 나머지는 동일
+    def get_balance_hatiko(self, base: str):
+        free_balance_by_base = None
+
+        if self.order_info.is_entry or (
+            self.order_info.is_spot and (self.order_info.is_buy or self.order_info.is_sell)
+        ):
+            free_balance = self.client.fetch_free_balance()
+            free_balance_by_base = free_balance.get(base)
+
+        # if free_balance_by_base is None or free_balance_by_base == 0:
+        #     raise error.FreeAmountNoneError()
+        return free_balance_by_base
+    
+    # by PTW
+    # hatiko용 get_futures_position
+    # "거래할 수량이 없습니다" Error를 발생시키지 않음.
+    # 나머지는 동일
+    def get_futures_position_hatiko(self, symbol=None, all=False):
+        if symbol is None and all:
+            positions = self.client.fetch_balance()["info"]["positions"]
+            positions = [position for position in positions if float(position["positionAmt"]) != 0]
+            return positions
+
+        positions = None
+        if self.order_info.is_coinm:
+            positions = self.client.fetch_balance()["info"]["positions"]
+            positions = [
+                position
+                for position in positions
+                if float(position["positionAmt"]) != 0 and position["symbol"] == self.client.market(symbol).get("id")
+            ]
+        else:
+            positions = self.client.fetch_positions(symbols=[symbol])
+
+        long_contracts = None
+        short_contracts = None
+        if positions:
+            if self.order_info.is_coinm:
+                for position in positions:
+                    amt = float(position["positionAmt"])
+                    if position["positionSide"] == "LONG":
+                        long_contracts = amt
+                    elif position["positionSide"] == "SHORT":
+                        short_contracts: float = amt
+                    elif position["positionSide"] == "BOTH":
+                        if amt > 0:
+                            long_contracts = amt
+                        elif amt < 0:
+                            short_contracts = abs(amt)
+            else:
+                for position in positions:
+                    if position["side"] == "long":
+                        long_contracts = position["contracts"]
+                    elif position["side"] == "short":
+                        short_contracts = position["contracts"]
+            if self.order_info.is_close and self.order_info.is_buy:
+                if not short_contracts:
+                    raise error.ShortPositionNoneError()
+                else:
+                    return short_contracts
+            elif self.order_info.is_close and self.order_info.is_sell:
+                if not long_contracts:
+                    raise error.LongPositionNoneError()
+                else:
+                    return long_contracts
+        else:
+            # raise error.PositionNoneError()
+            return 0
+    
+    # limit 오더 함수
+    # market_order 함수를 최대한 활용함
+    def limit_order(self, order_info: MarketOrder, amount: float, price: float):
+        from exchange.pexchange import retry
+
+        symbol = order_info.unified_symbol  # self.parse_symbol(base, quote)
+        params = {}
+        try:
+            return retry(
+                self.client.create_order,
+                symbol,
+                "limit",
+                order_info.side,
+                amount,
+                price,
+                params,
+                order_info=order_info,
+                max_attempts=5,
+                delay=0.1,
+                instance=self,
+            )
+        except Exception as e:
+            raise error.OrderError(e, self.order_info)
+
+    # limit 청산 함수
+    # market_close 함수를 최대한 활용함
+    def limit_close(self, order_info: MarketOrder, amount: float, price: float):
+        from exchange.pexchange import retry
+
+        symbol = self.order_info.unified_symbol  # self.parse_symbol(base, quote)
+        if self.position_mode == "one-way":
+            params = {"reduceOnly": True}
+        elif self.position_mode == "hedge":
+            if order_info.side == "buy":
+                if order_info.is_entry:
+                    positionSide = "LONG"
+                elif order_info.is_close:
+                    positionSide = "SHORT"
+            elif order_info.side == "sell":
+                if order_info.is_entry:
+                    positionSide = "SHORT"
+                elif order_info.is_close:
+                    positionSide = "LONG"
+            params = {"positionSide": positionSide}
+
+        try:
+            return retry(
+                self.client.create_order,
+                symbol,
+                "limit",
+                order_info.side,
+                abs(amount),
+                price,
+                params,
+                order_info=order_info,
+                max_attempts=5,
+                delay=0.1,
+                instance=self,
+            )
+        except Exception as e:
+            raise error.OrderError(e, self.order_info)
+
+
+
+    # # Hatiko용 오더
+    # # 기존의 오더 함수를 최대한 재활용하여 만듬
+    # def haitko_entry(self, order_info: MarketOrder, nMaxLong: int, nMaxShort: int):
+    #     """
+    #     - param
+    #     order_info : 유효성 검증이 끝난 order_info
+    #     nMaxLong : 진입할 Long 종목 개수
+    #     nMaxShort : 진입할 Short 종목 개수
+        
+    #     - return
+    #     orderID_list : 오더ID를 담은 리스트, 추 후 미체결주문 취소 시 필요
+    #     """
+    #     # 초기 세팅
+    #     symbol = order_info.unified_symbol
+    #     entry_price = order_info.price  # 진입 가격은 order_info로 넘겨받음
+    #     if order_info.leverage is not None: 
+    #         self.client.set_leverage(order_info.leverage, symbol)
+
+    #     # 진입수량 설정
+    #     total_amount = self.get_amount_hatiko(symbol, nMaxLong, nMaxShort)
+    #     market = self.client.market(symbol)
+    #     max_amount = market["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수  # float
+    #     min_amount = market["limits"]["amount"]["min"] # 지정가 주문 최소 코인개수  # float
+    #     # self.markets = self.client.load_markets()
+    #     # max_amount = self.markets[symbol]["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수
+    #     # min_amount = self.markets[symbol]["limits"]["amount"]["min"]
+
+    #     # Set nGoal
+    #     entry_amount_list = []
+    #     if (total_amount % max_amount < min_amount):
+    #         nGoal = total_amount // max_amount
+    #         for i in range(int(nGoal)):
+    #             entry_amount_list.append(max_amount)
+    #     else:
+    #         nGoal = total_amount // max_amount + 1
+    #         for i in range(int(nGoal - 1)):
+    #             entry_amount_list.append(max_amount)
+    #         remain_amount = float(self.client.amount_to_precision(symbol, total_amount % max_amount))
+    #         entry_amount_list.append(remain_amount)
+        
+
+    #     # 주문 생성
+    #     orderID_list = []
+    #     for i in range(int(nGoal)):
+    #         entry_amount = entry_amount_list[nComplete]
+    #         order_result = self.limit_order(order_info, entry_amount, entry_price)
+    #         orderID_list.append(order_result["id"])
+    #         background_tasks.add_task(log, exchange_name, result, order_info)
+
+
+
+            
+    #         result = self.client.create_order(symbol, "limit", side, abs(entry_amount), entry_price)
+    #         orderID_list.append(result['id'])
+    #         nComplete += 1
+    #         # 디스코드 로그생성
+    #         background_tasks.add_task(log, exchange_name, result, order_info)
+        
+
+
+
+
+    #     # 주문
+    #     self.limit_order(order_info, amount, price)
+

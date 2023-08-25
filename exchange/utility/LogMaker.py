@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from dhooks import Webhook, Embed
 from loguru import logger
 from devtools import debug, pformat
+from typing import Literal
 import traceback
 import os
 
@@ -258,3 +259,30 @@ def log_alert_message(order_info: MarketOrder, result="성공"):
 
     # logger
     print_alert_message(order_info, result)
+
+# by PTW
+MESSAGE_TYPE_LITERAL = Literal["RECV_TRADINGVIEW", "ENTRY_SIGNAL", "CANCEL_ORDER"]
+def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
+    embed = Embed(  
+    title=order_info.order_name,
+    description=f"{order_info.base} 기본 메세지",
+    color=0xFFFFFF,
+    )
+
+    # [Hatiko] entry 시그널 발생
+    if msg_type == "ENTRY_SIGNAL":
+        embed = Embed(  
+            title=order_info.order_name,
+            description=f"{order_info.base} 시그널 도착",
+            color=0xFFFFFF,
+        )
+
+    # [Hatiko] 미체결 주문 취소
+    if msg_type == "CANCEL_ORDER":
+        embed = Embed(  
+            title=order_info.order_name,
+            description=f"{order_info.base} 미체결 주문 취소",
+            color=0xFFFFFF,
+        )
+    
+    log_message(embed=embed)

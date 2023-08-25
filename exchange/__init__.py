@@ -19,4 +19,5 @@ from exchange.utility import (
     log_alert_message,
     log_message,
     settings,
+	log_custom_message
 )
