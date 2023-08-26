@@ -28,7 +28,7 @@ import os
 import sys
 from devtools import debug
 
-VERSION = "0.1.1"
+VERSION = "POA : 0.1.1, Hatiko : 230826"
 app = FastAPI(default_response_class=ORJSONResponse)
 
 
@@ -438,6 +438,35 @@ async def hatikolimitInfo():
         }
     return res
 
+# Hatiko Limit 관련 전역변수 초기화
+@ app.get("/inithatiko")
+async def inithatiko():
+    global nearLong1_dic, nearLong2_dic, nearLong3_dic, nearLong4_dic
+    global nearShort1_dic, nearShort2_dic, nearShort3_dic, nearShort4_dic
+    global Long1_list, Long2_list, Long3_list, Long4_list
+    global Short1_list, Short2_list, Short3_list, Short4_list
+
+    nearLong1_dic = {}
+    nearLong2_dic = {}
+    nearLong3_dic = {}
+    nearLong4_dic = {}
+    nearShort1_dic = {}
+    nearShort2_dic = {}
+    nearShort3_dic = {}
+    nearShort4_dic = {}
+
+    Long1_list = []
+    Long2_list = []
+    Long3_list = []
+    Long4_list = []
+    Short1_list = []
+    Short2_list = []
+    Short3_list = []
+    Short4_list = []
+
+    res = "Intialize Hatiko Variables Completed!!!"
+    return res
+
 @ app.post("/hatikolimit")
 @ app.post("/")
 async def hatikolimit(order_info: MarketOrder, background_tasks: BackgroundTasks):
@@ -627,16 +656,34 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 orderID_list_old = near_dic[order_info.base]
                 for orderID in orderID_list_old:
                     # 미체결 주문 취소
-                    if not isCancelSuccess:
+                    order = bot.client.fetch_order(orderID, symbol)
+                    if order["status"] == "canceled":
+                        amountCanceled = order["amount"]
+                        sideCanceled = order["side"]
+                    else:
                         resultCancel = bot.client.cancel_order(orderID, symbol)
                         if resultCancel["status"] == "canceled":
                             amountCanceled = resultCancel["amount"]
                             sideCanceled = resultCancel["side"]
-                            isCancelSuccess = True
+
+                    # if not isCancelSuccess:
+                    #     order = bot.client.fetch_order(orderID, symbol)
+                    #     # 이미 취소된 주문인 경우
+                    #     if order["status"] == "canceled":
+                    #         amountCanceled = order["amount"]
+                    #         sideCanceled = order["side"]
+                    #         isCancelSuccess = True
+                    #     else:
+                    #         resultCancel = bot.client.cancel_order(orderID, symbol)
+                    #         if resultCancel["status"] == "canceled":
+                    #             amountCanceled = resultCancel["amount"]
+                    #             sideCanceled = resultCancel["side"]
+                    #             isCancelSuccess = True
+                    
                     # 재주문
                     order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
                     # order_result = bot.limit_order(order_info, amountCanceled, order_info.price)
-                    isCancelSuccess = False
+                    # isCancelSuccess = False
                     orderID_list_old.remove(orderID)
                     orderID_list.append(order_result["id"])
                     background_tasks.add_task(log, exchange_name, order_result, order_info)
@@ -659,11 +706,20 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 if exchange_name != "BINANCE":    # Binance Only
                     return {"result" : "ignore"}
 
-                # 3. 미체결 주문 취소 & 청산 주문
-                
+                # 3. 미체결 주문 취소
                 bot = get_bot(exchange_name, order_info.kis_number)
                 bot.init_info(order_info)
+                if not isCancelSuccess:
+                    bot.client.cancel_all_orders(symbol)
+                    isCancelSuccess = True
 
+                # [Debug] 미체결 주문 취소 후 알람 발생
+                # (미체결 주문만 취소하는 경우 따로 알람이 발생하지 않기 때문에 알람 발생)
+                if not isSendSignalDiscord and isCancelSuccess:
+                    background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER")
+                    isSendSignalDiscord = True
+
+                # 4. 청산 주문
                 if order_info.is_close:
                     #############################
                     ## Close 매매코드
@@ -695,17 +751,6 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         # 트뷰에 나오는 청산 가격에 그대로 청산
                         close_price = order_info.price  
                         isSettingFinish = True
-
-                    # (1) 미체결 주문 취소
-                    if not isCancelSuccess:
-                        bot.client.cancel_all_orders(symbol)
-                        isCancelSuccess = True
-
-                    # [Debug] 미체결 주문 취소 후 알람 발생
-                    # (미체결 주문만 취소하는 경우 따로 알람이 발생하지 않기 때문에 알람 발생)
-                    if not isSendSignalDiscord and isCancelSuccess:
-                        background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER")
-                        isSendSignalDiscord = True
 
                     # (2) 청산 주문
                     for i in range(int(nGoal-nComplete)):

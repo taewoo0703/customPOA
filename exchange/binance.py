@@ -445,6 +445,9 @@ class Binance:
                         long_contracts = position["contracts"]
                     elif position["side"] == "short":
                         short_contracts = position["contracts"]
+                    else:
+                        long_contracts = 0.0
+                        short_contracts = 0.0
             if self.order_info.is_close and self.order_info.is_buy:
                 # if not short_contracts:
                 #     raise error.ShortPositionNoneError()
