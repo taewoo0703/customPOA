@@ -679,7 +679,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                     #             amountCanceled = resultCancel["amount"]
                     #             sideCanceled = resultCancel["side"]
                     #             isCancelSuccess = True
-                    
+
                     # 재주문
                     order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
                     # order_result = bot.limit_order(order_info, amountCanceled, order_info.price)
@@ -709,6 +709,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 # 3. 미체결 주문 취소
                 bot = get_bot(exchange_name, order_info.kis_number)
                 bot.init_info(order_info)
+                symbol = order_info.unified_symbol
                 if not isCancelSuccess:
                     bot.client.cancel_all_orders(symbol)
                     isCancelSuccess = True
@@ -724,9 +725,8 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                     #############################
                     ## Close 매매코드
                     #############################
-                    if not isSettingFinish:   # 초기 세팅
-                        symbol = order_info.unified_symbol
-
+                    if not isSettingFinish:
+                        # 초기 세팅
                         # total amount를 max_amount로 쪼개기
                         total_amount = bot.get_amount_hatiko(symbol, nMaxLong, nMaxShort)
                         market = bot.client.market(symbol)
