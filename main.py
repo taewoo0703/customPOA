@@ -503,7 +503,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                          "TakeProfit_L1", "TakeProfit_L2", "TakeProfit_L3", "TakeProfit_L4"]
 
     # 초기화 단계
-    result = None
+    order_result = None
     nGoal = 0
     nComplete = 0
     isSettingFinish = False     # 매매전 ccxt 세팅 flag 
@@ -634,8 +634,8 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                             sideCanceled = resultCancel["side"]
                             isCancelSuccess = True
                     # 재주문
-                    # order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
-                    order_result = bot.limit_order(order_info, amountCanceled, order_info.price)
+                    order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
+                    # order_result = bot.limit_order(order_info, amountCanceled, order_info.price)
                     isCancelSuccess = False
                     orderID_list_old.remove(orderID)
                     orderID_list.append(order_result["id"])
@@ -660,6 +660,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                     return {"result" : "ignore"}
 
                 # 3. 미체결 주문 취소 & 청산 주문
+                
                 bot = get_bot(exchange_name, order_info.kis_number)
                 bot.init_info(order_info)
 
