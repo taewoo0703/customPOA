@@ -310,68 +310,37 @@ async def hedge(hedge_data: HedgeData, background_tasks: BackgroundTasks):
 @ app.post("/orderinfo")
 @ app.post("/")
 async def orderinfo(order_info: MarketOrder, background_tasks: BackgroundTasks):
-    res = f"exchange(Literal str)  : {order_info.exchange}\n" \
-        f"base(str) : {order_info.base}\n" \
-        f"quote(Literal str) : {order_info.quote}\n" \
-        f"type(Literal str) : {order_info.type}\n" \
-        f"type(Literal str) : {order_info.type}\n" \
-        f"side(Literal str) : {order_info.side}\n" \
-        f"amount(float) : {order_info.amount}\n" \
-        f"price(float) : {order_info.price}\n" \
-        f"cost(float) : {order_info.cost}\n" \
-        f"percent(float) : {order_info.percent}\n" \
-        f"amount_by_percent(float) : {order_info.amount_by_percent}\n" \
-        f"leverage(int) : {order_info.leverage}\n" \
-        f"stop_price(float) : {order_info.stop_price}\n" \
-        f"profit_price(float) : {order_info.profit_price}\n" \
-        f"order_name(str) : {order_info.order_name}\n" \
-        f"kis_number(int) : {order_info.kis_number}\n" \
-        f"hedge(str) : {order_info.hedge}\n" \
-        f"unified_symbol(str) : {order_info.unified_symbol}\n" \
-        f"is_crypto(bool) : {order_info.is_crypto}\n" \
-        f"is_stock(bool) : {order_info.is_stock}\n" \
-        f"is_spot(bool) : {order_info.is_spot}\n" \
-        f"is_futures(bool) : {order_info.is_futures}\n" \
-        f"is_coinm(bool) : {order_info.is_coinm}\n" \
-        f"is_entry(bool) : {order_info.is_entry}\n" \
-        f"is_close(bool) : {order_info.is_close}\n" \
-        f"is_buy(bool) : {order_info.is_buy}\n" \
-        f"is_sell(bool) : {order_info.is_sell}\n" \
-        f"is_contract(bool) : {order_info.is_contract}\n" \
-        f"contract_size(float) : {order_info.contract_size}\n" \
-        f"margin_mode(str) : {order_info.margin_mode}\n"
-
-    # res = {
-    #     "exchange(Literal str)"  : str(order_info.exchange),
-    #     "base(str)" : str(order_info.base),
-    #     "quote(Literal str)" : str(order_info.quote),
-    #     "type(Literal str)" : str(order_info.type),
-    #     "side(Literal str)" : str(order_info.side),
-    #     "amount(float)" : str(order_info.amount),
-    #     "price(float)" : str(order_info.price),
-    #     "cost(float)" : str(order_info.cost),
-    #     "percent(float)" : str(order_info.percent),
-    #     "amount_by_percent(float)" : str(order_info.amount_by_percent),
-    #     "leverage(int)" : str(order_info.leverage),
-    #     "stop_price(float)" : str(order_info.stop_price),
-    #     "profit_price(float)" : str(order_info.profit_price),
-    #     "order_name(str)" : str(order_info.order_name),
-    #     "kis_number(int)" : str(order_info.kis_number),
-    #     "hedge(str)" : str(order_info.hedge),
-    #     "unified_symbol(str)" : str(order_info.unified_symbol),
-    #     "is_crypto(bool)" : str(order_info.is_crypto),
-    #     "is_stock(bool)" : str(order_info.is_stock),
-    #     "is_spot(bool)" : str(order_info.is_spot),
-    #     "is_futures(bool)" : str(order_info.is_futures),
-    #     "is_coinm(bool)" : str(order_info.is_coinm),
-    #     "is_entry(bool)" : str(order_info.is_entry),
-    #     "is_close(bool)" : str(order_info.is_close),
-    #     "is_buy(bool)" : str(order_info.is_buy),
-    #     "is_sell(bool)" : str(order_info.is_sell),
-    #     "is_contract(bool)" : str(order_info.is_contract),
-    #     "contract_size(float)" : str(order_info.contract_size),
-    #     "margin_mode(str)" : str(order_info.margin_mode)
-    #     }
+    res = {
+        "exchange(Literal str)"  : str(order_info.exchange),
+        "base(str)" : str(order_info.base),
+        "quote(Literal str)" : str(order_info.quote),
+        "type(Literal str)" : str(order_info.type),
+        "side(Literal str)" : str(order_info.side),
+        "amount(float)" : str(order_info.amount),
+        "price(float)" : str(order_info.price),
+        "cost(float)" : str(order_info.cost),
+        "percent(float)" : str(order_info.percent),
+        "amount_by_percent(float)" : str(order_info.amount_by_percent),
+        "leverage(int)" : str(order_info.leverage),
+        "stop_price(float)" : str(order_info.stop_price),
+        "profit_price(float)" : str(order_info.profit_price),
+        "order_name(str)" : str(order_info.order_name),
+        "kis_number(int)" : str(order_info.kis_number),
+        "hedge(str)" : str(order_info.hedge),
+        "unified_symbol(str)" : str(order_info.unified_symbol),
+        "is_crypto(bool)" : str(order_info.is_crypto),
+        "is_stock(bool)" : str(order_info.is_stock),
+        "is_spot(bool)" : str(order_info.is_spot),
+        "is_futures(bool)" : str(order_info.is_futures),
+        "is_coinm(bool)" : str(order_info.is_coinm),
+        "is_entry(bool)" : str(order_info.is_entry),
+        "is_close(bool)" : str(order_info.is_close),
+        "is_buy(bool)" : str(order_info.is_buy),
+        "is_sell(bool)" : str(order_info.is_sell),
+        "is_contract(bool)" : str(order_info.is_contract),
+        "contract_size(float)" : str(order_info.contract_size),
+        "margin_mode(str)" : str(order_info.margin_mode)
+        }
     return res
 
 # 지정가 Hatiko용 near시그널 딕셔너리
