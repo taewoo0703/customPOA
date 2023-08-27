@@ -901,8 +901,9 @@ def get_amount_kctrend_haitko(order_info: MarketOrder, bot):
         # ---------------------------------------------
 
         # entry_cash 보정
-        if entry_cash > free_cash * 0.99:
-            entry_cash = free_cash * 0.99
+        if entry_cash > free_cash - 50000:  # 5만원은 여윳돈
+            entry_cash = free_cash - 50000
+            entry_cash = 0 if entry_cash < 10000 else entry_cash    # 1만원 보다 작은 포지션은 들어가지 않는다.
 
         # amount 계산
         entry_price = order_info.price
@@ -953,7 +954,8 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
         if order_name in kctrend_buy_signal_list:
             ## (1) 켈트너 전략 진입 (Hatiko 전략의 포지션을 켈트너 전략으로 편입)
             order_info.amount = get_amount_kctrend_haitko(order_info, bot)
-            order_result = bot.market_order(order_info)
+            if order_info.amount > 0:
+                order_result = bot.market_order(order_info)
 
             ## (2) 켈트너 목록 추가
             if not order_info.base in kctrend_long_list:
@@ -973,7 +975,8 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
         elif order_name in kctrend_sell_signal_list:
             ## (1) 켈트너 전략 청산
             order_info.amount = get_amount_kctrend_haitko(order_info, bot)
-            order_result = bot.market_order(order_info)
+            if order_info.amount > 0:
+                order_result = bot.market_order(order_info)
 
             ## (2) 켈트너 목록 초기화
             if order_info.base in kctrend_long_list:
@@ -992,7 +995,8 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
 
             ## (3) Hatiko 전략 진입
             order_info.amount = get_amount_kctrend_haitko(order_info, bot)
-            order_result = bot.market_order(order_info)
+            if order_info.amount > 0:
+                order_result = bot.market_order(order_info)
 
             ## (4) Hatiko 목록 추가
             hatiko_long_list.append(order_info.base)
@@ -1009,7 +1013,8 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
             
             ## (3) Hatiko 전략 청산
             order_info.amount = get_amount_kctrend_haitko(order_info, bot)
-            order_result = bot.market_order(order_info)
+            if order_info.amount > 0:
+                order_result = bot.market_order(order_info)
 
             ## (4) Hatiko 목록 초기화
             if order_info.base in hatiko_long1_list:
@@ -1032,7 +1037,9 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
         # 3. 디스코드 알람 발생
         if order_result is not None:
             background_tasks.add_task(log, exchange_name, order_result, order_info)
-
+        else:
+            background_tasks.add_task(log_custom_message, order_info, "RECV_BUT_NO_ORDER")
+            
     except TypeError as e:
         error_msg = get_error(e)
         background_tasks.add_task(log_order_error_message, "\n".join(error_msg), order_info)
@@ -1086,7 +1093,8 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
         if order_name in kctrend_buy_signal_list:
             ## (1) 켈트너 전략 진입 (Hatiko 전략의 포지션을 켈트너 전략으로 편입)
             order_info.amount = get_amount_kctrend_haitko(order_info, bot)
-            order_result = bot.limit_order(order_info)
+            if order_info.amount > 0:
+                order_result = bot.limit_order(order_info)
 
             ## (2) 켈트너 목록 추가
             if not order_info.base in kctrend_long_list:
@@ -1106,7 +1114,8 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
         elif order_name in kctrend_sell_signal_list:
             ## (1) 켈트너 전략 청산
             order_info.amount = get_amount_kctrend_haitko(order_info, bot)
-            order_result = bot.limit_order(order_info)
+            if order_info.amount > 0:
+                order_result = bot.limit_order(order_info)
 
             ## (2) 켈트너 목록 초기화
             if order_info.base in kctrend_long_list:
@@ -1125,7 +1134,8 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
 
             ## (3) Hatiko 전략 진입
             order_info.amount = get_amount_kctrend_haitko(order_info, bot)
-            order_result = bot.limit_order(order_info)
+            if order_info.amount > 0:
+                order_result = bot.limit_order(order_info)
 
             ## (4) Hatiko 목록 추가
             hatiko_long_list.append(order_info.base)
@@ -1142,7 +1152,8 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
             
             ## (3) Hatiko 전략 청산
             order_info.amount = get_amount_kctrend_haitko(order_info, bot)
-            order_result = bot.limit_order(order_info)
+            if order_info.amount > 0:
+                order_result = bot.limit_order(order_info)
 
             ## (4) Hatiko 목록 초기화
             if order_info.base in hatiko_long1_list:
@@ -1165,7 +1176,9 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
         # 3. 디스코드 알람 발생
         if order_result is not None:
             background_tasks.add_task(log, exchange_name, order_result, order_info)
-
+        else:
+            background_tasks.add_task(log_custom_message, order_info, "RECV_BUT_NO_ORDER")
+            
     except TypeError as e:
         error_msg = get_error(e)
         background_tasks.add_task(log_order_error_message, "\n".join(error_msg), order_info)
@@ -1179,4 +1192,3 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
 
     finally:
         pass
-
