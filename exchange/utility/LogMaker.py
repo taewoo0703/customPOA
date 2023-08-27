@@ -261,7 +261,7 @@ def log_alert_message(order_info: MarketOrder, result="성공"):
     print_alert_message(order_info, result)
 
 # by PTW
-MESSAGE_TYPE_LITERAL = Literal["RECV_TRADINGVIEW", "ENTRY_SIGNAL", "CANCEL_ORDER"]
+MESSAGE_TYPE_LITERAL = Literal["RECV_TRADINGVIEW", "ENTRY_SIGNAL", "CANCEL_ORDER", "ORDER_NAME_INCORRECT"]
 def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     embed = Embed(  
     title=order_info.order_name,
@@ -285,4 +285,13 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
             color=0xFFFFFF,
         )
     
+    # [kctrend & Hatiko] order_name_list에 존재하지 않는 order_name 들어옴.
+    if msg_type == "ORDER_NAME_INCORRECT":
+        embed = Embed(  
+            title=order_info.order_name,
+            description=f"order_name 이 맞지 않습니다. 확인 필요.",
+            color=0xFFFFFF,
+        )
+
+
     log_message(embed=embed)

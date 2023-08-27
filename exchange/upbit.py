@@ -99,3 +99,28 @@ class Upbit:
 
     def get_order_amount(self, order_id: str):
         return self.get_order(order_id)["filled"]
+
+
+    #######################################
+    # by PTW
+    #######################################
+
+    def limit_order(self, order_info: MarketOrder):
+        from exchange.pexchange import retry
+
+        params = {}
+        try:
+            return retry(
+                self.client.create_order,
+                order_info.unified_symbol,
+                "limit",
+                order_info.side,
+                order_info.amount,
+                order_info.price,
+                params,
+                order_info=order_info,
+                max_attempts=5,
+                instance=self,
+            )
+        except Exception as e:
+            raise error.OrderError(e, order_info)

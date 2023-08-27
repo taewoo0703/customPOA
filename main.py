@@ -416,8 +416,8 @@ def matchEntryList(order_name):
         return Short4_list
     
 # Hatiko Limit 관련 메모리 모니터
-@ app.get("/hatikolimitInfo")
-async def hatikolimitInfo():
+@ app.get("/hatikolimitinfo")
+async def hatikolimitinfo():
     res = {
         "nearLong1_dic"  : str(list(nearLong1_dic.keys())),
         "nearLong2_dic"  : str(list(nearLong2_dic.keys())),
@@ -614,7 +614,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 # 4. 매매가 전부 종료되면 near리스트 업데이트
                 near_dic[order_info.base] = orderID_list
 
-            if order_info.order_name in entrySignal_list:
+            elif order_info.order_name in entrySignal_list:
                 # Long or Short 시그널 처리
                 # 예시) Long1 시그널 수신
                 # 해당 종목이 nearLong1_dic에 존재하는지 확인 -> 존재 시, Long1 리스트에 추가
@@ -628,7 +628,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         background_tasks.add_task(log_custom_message, order_info, "ENTRY_SIGNAL")
                         isSendSignalDiscord = True
             
-            if order_info.order_name in nextSignal_list:
+            elif order_info.order_name in nextSignal_list:
                 # NextCandle 시그널 처리
                 # 예시) NextCandle_L1 시그널 수신
                 # 해당 종목이 nearLong1_dic에 존재하는지 확인 -> 존재 시, Long1_list에 없으면 미체결주문 체크 -> 미체결주문 취소 & 신규 Long1 주문
@@ -680,7 +680,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 # 4. near_dic 오더id 업데이트
                 near_dic[order_info.base] = orderID_list
 
-            if order_info.order_name in closeSignal_list:
+            elif order_info.order_name in closeSignal_list:
                 # 청산 시그널 처리
                 # 예시) 청산 시그널 수신
                 # 해당 종목이 nearLong1_list에 존재하는지 확인 -> 존재 시, 청산 주문 & 미체결 주문 취소 -> 성공 시, 존재하는 모든 리스트에서 제거
@@ -786,9 +786,13 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 if order_info.base in Short4_list:
                     Short4_list.remove(order_info.base)
 
-            if order_info.order_name in ignoreSignal_list:
+            elif order_info.order_name in ignoreSignal_list:
                 return {"result" : "ignore"}
         
+            else:
+                background_tasks.add_task(log_custom_message, order_info, "ORDER_NAME_INCORRECT")
+                return {"result" : "ignore"}
+            
         except TypeError as e:
             error_msg = get_error(e)
             background_tasks.add_task(log_order_error_message, "\n".join(error_msg), order_info)
@@ -805,6 +809,374 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
 
 
 
+############################### 켈트너 + Hatiko in Upbit #################################
 
+kctrend_long_list = []   # 켈트너 추세 전략 Long 진입 중인 종목들 list
 
+hatiko_long1_list = []    # Hatiko 전략 Long1 진입 중인 종목들 list
+hatiko_long2_list = []    # Hatiko 전략 Long2 진입 중인 종목들 list
+hatiko_long3_list = []    # Hatiko 전략 Long3 진입 중인 종목들 list
+hatiko_long4_list = []    # Hatiko 전략 Long4 진입 중인 종목들 list
+
+@ app.get("/initkctrendandhatiko")
+async def initkctrendandhatiko():
+    global kctrend_long_list, hatiko_long1_list, hatiko_long2_list, hatiko_long3_list, hatiko_long4_list
+
+    # kctrend + hatiko 관련 전역변수 초기화
+    kctrend_long_list = []
+
+    hatiko_long1_list = []
+    hatiko_long2_list = []
+    hatiko_long3_list = []
+    hatiko_long4_list = []
+    
+    return "Intialize kctrend & hatiko Variables Completed!!!"
+
+@ app.get("/kctrendandhatikoinfo")
+async def kctrendandhatikoinfo():
+    res = {
+        "kctrend_long_list" : str(kctrend_long_list),
+        "hatiko_long1_list" : str(hatiko_long1_list),
+        "hatiko_long2_list" : str(hatiko_long2_list),
+        "hatiko_long3_list" : str(hatiko_long3_list),
+        "hatiko_long4_list" : str(hatiko_long4_list),
+    }
+    return res
+
+def match_hatiko_long_list(order_name: str):
+    """
+    [켈트너 + Hatiko 결합 전략 전용 함수]
+    order_name에 따라 해당하는 hatiko_long_list를 반환
+    """
+    global hatiko_long1_list, hatiko_long2_list, hatiko_long3_list, hatiko_long4_list
+
+    if order_name in ["nearLong1", "Long1", "NextCandle_L1"]:
+        return hatiko_long1_list
+    if order_name in ["nearLong2", "Long2", "NextCandle_L2"]:
+        return hatiko_long2_list
+    if order_name in ["nearLong3", "Long3", "NextCandle_L3"]:
+        return hatiko_long3_list
+    if order_name in ["nearLong4", "Long4", "NextCandle_L4"]:
+        return hatiko_long4_list
+
+def get_amount_kctrend_haitko(order_info: MarketOrder, bot):
+    global kctrend_long_list, hatiko_long1_list, hatiko_long2_list, hatiko_long3_list, hatiko_long4_list
+
+    kctrend_buy_signal_list = ["kctrend Long"]
+    hatiko_buy_signal_list = ["Long1", "Long2", "Long3", "Long4"]
+
+    # upbit 계좌 상태 읽어오기
+    free_cash = bot.get_balance(order_info.quote)
+    free_coin = bot.get_balance(order_info.base)
+
+    # 진입 오더의 경우
+    if order_info.is_spot and order_info.is_buy:
+        # hatiko 진입 갯수 확인
+        hatiko_count_all = len(hatiko_long1_list + hatiko_long2_list + hatiko_long3_list + hatiko_long4_list)
+        hatiko_count_mine = (hatiko_long1_list + hatiko_long2_list + hatiko_long3_list + hatiko_long4_list).count(order_info.base)
+        
+        # 켈트너 진입 갯수 확인
+        kctrend_count_all = len(kctrend_long_list)
+
+        # total cash 계산
+        used_hatiko_portion_all = hatiko_count_all / 8.0
+        used_kctrend_portion_all = kctrend_count_all / 2.0
+        used_portion = used_hatiko_portion_all + used_kctrend_portion_all
+        rest_portion_all = 1 - used_portion
+        total_cash = free_cash / rest_portion_all
+
+        # ---------- 시그널 종류에 따른 차이 ----------
+        # case 1) 켈트너 진입 오더
+        if order_info.order_name in kctrend_buy_signal_list:
+            # kctrend에 사용할 cash 계산
+            cash_for_kctrend = total_cash / 2
+            used_cash_in_hatiko_already = total_cash * hatiko_count_mine / 8
+            entry_cash = cash_for_kctrend - used_cash_in_hatiko_already
+            
+        # case 2) Hatiko 진입 오더
+        if order_info.order_name in hatiko_buy_signal_list:
+            # haitko 신규 포지션에 사용할 cash 계산
+            cash_for_hatiko = total_cash / 8
+            entry_cash = cash_for_hatiko
+        # ---------------------------------------------
+
+        # entry_cash 보정
+        if entry_cash > free_cash * 0.99:
+            entry_cash = free_cash * 0.99
+
+        # amount 계산
+        entry_price = order_info.price
+        entry_amount = entry_cash / entry_price
+        return entry_amount
+        
+    # 청산 오더의 경우
+    if order_info.is_spot and order_info.is_sell:
+        if free_coin is None:
+            return 0
+        return free_coin
+
+@ app.post("/kctrendandhatiko")
+@ app.post("/")
+async def kctrendandhatiko(order_info: MarketOrder, background_tasks: BackgroundTasks):
+    """
+    켈트너 추세전략과 hatiko를 섞어서 쓰는 전략
+    
+    거래소 : Upbit
+    종목 : 2개 (BTC, ETH)
+    로직 : 켈트너가 hatiko 보다 우선권을 가진다.
+           켈트너 진입 중일 때 hatiko 시그널은 무시, hatiko 진입 중일 때 켈트너 시그널이 뜨면 hatiko는 거기서 중단하고 켈트너로 편입
+    베팅비율 : 총 Balance를 기준으로 각 종목은 50% 씩 할당된다. hatiko 시그널의 경우 50% 안에서 1/4 하여 포지션을 베팅한다.
+    """
+
+    global kctrend_long_list, hatiko_long1_list, hatiko_long2_list, hatiko_long3_list, hatiko_long4_list
+
+    # order_name 리스트
+    kctrend_buy_signal_list = ["kctrend Long"]
+    kctrend_sell_signal_list = ["kctrend Long Close"]
+    hatiko_buy_signal_list = ["Long1", "Long2", "Long3", "Long4"]
+    hatiko_sell_signal_list = ["close Longs on open", "TakeProfitL1"]
+    haitko_ignore_signal_list = ["TakeProfitL2", "TakeProfitL3", "TakeProfitL4"]
+
+    # order_result 변수 선언
+    order_result = None
+
+    try :
+        # 1. upbit 객체 생성
+        exchange_name = order_info.exchange
+        bot = get_bot(exchange_name, order_info.kis_number)
+        bot.init_info(order_info)
+
+        # 2. order_name 확인
+        order_name = order_info.order_name
+
+        # 2-1. 켈트너 전략 진입 시그널
+        if order_name in kctrend_buy_signal_list:
+            ## (1) 켈트너 전략 진입 (Hatiko 전략의 포지션을 켈트너 전략으로 편입)
+            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_result = bot.market_order(order_info)
+
+            ## (2) 켈트너 목록 추가
+            if not order_info.base in kctrend_long_list:
+                kctrend_long_list.append(order_info.base)
+
+            ## (3) Hatiko 목록 초기화       
+            if order_info.base in hatiko_long1_list:
+                hatiko_long1_list.remove(order_info.base)
+            if order_info.base in hatiko_long2_list:
+                hatiko_long2_list.remove(order_info.base)
+            if order_info.base in hatiko_long3_list:
+                hatiko_long3_list.remove(order_info.base)
+            if order_info.base in hatiko_long4_list:
+                hatiko_long4_list.remove(order_info.base)
+        
+        # 2-2. 켈트너 전략 청산 시그널
+        elif order_name in kctrend_sell_signal_list:
+            ## (1) 켈트너 전략 청산
+            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_result = bot.market_order(order_info)
+
+            ## (2) 켈트너 목록 초기화
+            if order_info.base in kctrend_long_list:
+                kctrend_long_list.remove(order_info.base)
+            
+        # 2-3. Hatiko 전략 진입 시그널
+        elif order_name in hatiko_buy_signal_list:
+            ## (1) 켈트너 포지션 있으면 무시
+            if order_info.base in kctrend_long_list:
+                return {"result" : "ignore"}
+            
+            ## (2) Hatiko 기진입 여부 확인
+            hatiko_long_list = match_hatiko_long_list(order_info.order_name)
+            if order_info.base in hatiko_long_list:
+                return {"result" : "ignore"}
+
+            ## (3) Hatiko 전략 진입
+            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_result = bot.market_order(order_info)
+
+            ## (4) Hatiko 목록 추가
+            hatiko_long_list.append(order_info.base)
+        
+        # 2-4. Hatiko 전략 청산 시그널
+        elif order_name in hatiko_sell_signal_list:
+            ## (1) 켈트너 포지션 있으면 무시
+            if order_info.base in kctrend_long_list:
+                return {"result" : "ignore"}
+
+            ## (2) Hatiko 포지션 확인
+            if order_info.base not in (hatiko_long1_list + hatiko_long2_list + hatiko_long3_list + hatiko_long4_list):
+                return {"result" : "ignore"}
+            
+            ## (3) Hatiko 전략 청산
+            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_result = bot.market_order(order_info)
+
+            ## (4) Hatiko 목록 초기화
+            if order_info.base in hatiko_long1_list:
+                hatiko_long1_list.remove(order_info.base)
+            if order_info.base in hatiko_long2_list:
+                hatiko_long2_list.remove(order_info.base)
+            if order_info.base in hatiko_long3_list:
+                hatiko_long3_list.remove(order_info.base)
+            if order_info.base in hatiko_long4_list:
+                hatiko_long4_list.remove(order_info.base)
+        
+        # 2-5. 무시하는 시그널
+        elif order_name in haitko_ignore_signal_list:
+            return {"result" : "ignore"}
+        # 2-6. 예상 외의 시그널
+        else:
+            background_tasks.add_task(log_custom_message, order_info, "ORDER_NAME_INCORRECT")
+            return {"result" : "ignore"}
+
+        # 3. 디스코드 알람 발생
+        if order_result is not None:
+            background_tasks.add_task(log, exchange_name, order_result, order_info)
+
+    except TypeError as e:
+        error_msg = get_error(e)
+        background_tasks.add_task(log_order_error_message, "\n".join(error_msg), order_info)
+
+    except Exception as e:
+        error_msg = get_error(e)
+        background_tasks.add_task(log_error, "\n".join(error_msg), order_info)
+
+    else:
+        return {"result": "success"}
+
+    finally:
+        pass
+
+@ app.post("/kctrendandhatikolimit")
+@ app.post("/")
+async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: BackgroundTasks):
+    """
+    [지정가 버전 - client.market_order만 client.limit_order로 변경]
+    켈트너 추세전략과 hatiko를 섞어서 쓰는 전략
+    
+    거래소 : Upbit
+    종목 : 2개 (BTC, ETH)
+    로직 : 켈트너가 hatiko 보다 우선권을 가진다.
+           켈트너 진입 중일 때 hatiko 시그널은 무시, hatiko 진입 중일 때 켈트너 시그널이 뜨면 hatiko는 거기서 중단하고 켈트너로 편입
+    베팅비율 : 총 Balance를 기준으로 각 종목은 50% 씩 할당된다. hatiko 시그널의 경우 50% 안에서 1/4 하여 포지션을 베팅한다.
+    """
+
+    global kctrend_long_list, hatiko_long1_list, hatiko_long2_list, hatiko_long3_list, hatiko_long4_list
+
+    # order_name 리스트
+    kctrend_buy_signal_list = ["kctrend Long"]
+    kctrend_sell_signal_list = ["kctrend Long Close"]
+    hatiko_buy_signal_list = ["Long1", "Long2", "Long3", "Long4"]
+    hatiko_sell_signal_list = ["close Longs on open", "TakeProfitL1"]
+    haitko_ignore_signal_list = ["TakeProfitL2", "TakeProfitL3", "TakeProfitL4"]
+
+    # order_result 변수 선언
+    order_result = None
+
+    try :
+        # 1. upbit 객체 생성
+        exchange_name = order_info.exchange
+        bot = get_bot(exchange_name, order_info.kis_number)
+        bot.init_info(order_info)
+
+        # 2. order_name 확인
+        order_name = order_info.order_name
+
+        # 2-1. 켈트너 전략 진입 시그널
+        if order_name in kctrend_buy_signal_list:
+            ## (1) 켈트너 전략 진입 (Hatiko 전략의 포지션을 켈트너 전략으로 편입)
+            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_result = bot.limit_order(order_info)
+
+            ## (2) 켈트너 목록 추가
+            if not order_info.base in kctrend_long_list:
+                kctrend_long_list.append(order_info.base)
+
+            ## (3) Hatiko 목록 초기화       
+            if order_info.base in hatiko_long1_list:
+                hatiko_long1_list.remove(order_info.base)
+            if order_info.base in hatiko_long2_list:
+                hatiko_long2_list.remove(order_info.base)
+            if order_info.base in hatiko_long3_list:
+                hatiko_long3_list.remove(order_info.base)
+            if order_info.base in hatiko_long4_list:
+                hatiko_long4_list.remove(order_info.base)
+        
+        # 2-2. 켈트너 전략 청산 시그널
+        elif order_name in kctrend_sell_signal_list:
+            ## (1) 켈트너 전략 청산
+            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_result = bot.limit_order(order_info)
+
+            ## (2) 켈트너 목록 초기화
+            if order_info.base in kctrend_long_list:
+                kctrend_long_list.remove(order_info.base)
+            
+        # 2-3. Hatiko 전략 진입 시그널
+        elif order_name in hatiko_buy_signal_list:
+            ## (1) 켈트너 포지션 있으면 무시
+            if order_info.base in kctrend_long_list:
+                return {"result" : "ignore"}
+            
+            ## (2) Hatiko 기진입 여부 확인
+            hatiko_long_list = match_hatiko_long_list(order_info.order_name)
+            if order_info.base in hatiko_long_list:
+                return {"result" : "ignore"}
+
+            ## (3) Hatiko 전략 진입
+            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_result = bot.limit_order(order_info)
+
+            ## (4) Hatiko 목록 추가
+            hatiko_long_list.append(order_info.base)
+        
+        # 2-4. Hatiko 전략 청산 시그널
+        elif order_name in hatiko_sell_signal_list:
+            ## (1) 켈트너 포지션 있으면 무시
+            if order_info.base in kctrend_long_list:
+                return {"result" : "ignore"}
+
+            ## (2) Hatiko 포지션 확인
+            if order_info.base not in (hatiko_long1_list + hatiko_long2_list + hatiko_long3_list + hatiko_long4_list):
+                return {"result" : "ignore"}
+            
+            ## (3) Hatiko 전략 청산
+            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_result = bot.limit_order(order_info)
+
+            ## (4) Hatiko 목록 초기화
+            if order_info.base in hatiko_long1_list:
+                hatiko_long1_list.remove(order_info.base)
+            if order_info.base in hatiko_long2_list:
+                hatiko_long2_list.remove(order_info.base)
+            if order_info.base in hatiko_long3_list:
+                hatiko_long3_list.remove(order_info.base)
+            if order_info.base in hatiko_long4_list:
+                hatiko_long4_list.remove(order_info.base)
+        
+        # 2-5. 무시하는 시그널
+        elif order_name in haitko_ignore_signal_list:
+            return {"result" : "ignore"}
+        # 2-6. 예상 외의 시그널
+        else:
+            background_tasks.add_task(log_custom_message, order_info, "ORDER_NAME_INCORRECT")
+            return {"result" : "ignore"}
+
+        # 3. 디스코드 알람 발생
+        if order_result is not None:
+            background_tasks.add_task(log, exchange_name, order_result, order_info)
+
+    except TypeError as e:
+        error_msg = get_error(e)
+        background_tasks.add_task(log_order_error_message, "\n".join(error_msg), order_info)
+
+    except Exception as e:
+        error_msg = get_error(e)
+        background_tasks.add_task(log_error, "\n".join(error_msg), order_info)
+
+    else:
+        return {"result": "success"}
+
+    finally:
+        pass
 
