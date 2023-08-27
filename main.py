@@ -883,6 +883,8 @@ def get_amount_kctrend_haitko(order_info: MarketOrder, bot):
         used_kctrend_portion_all = kctrend_count_all / 2.0
         used_portion = used_hatiko_portion_all + used_kctrend_portion_all
         rest_portion_all = 1 - used_portion
+        if rest_portion_all <= 0:
+            return 0
         total_cash = free_cash / rest_portion_all
 
         # ---------- 시그널 종류에 따른 차이 ----------
@@ -901,8 +903,8 @@ def get_amount_kctrend_haitko(order_info: MarketOrder, bot):
         # ---------------------------------------------
 
         # entry_cash 보정
-        if entry_cash > free_cash - 50000:  # 5만원은 여윳돈
-            entry_cash = free_cash - 50000
+        if entry_cash > free_cash - 10000:  # 1만원은 여윳돈
+            entry_cash = free_cash - 10000
             entry_cash = 0 if entry_cash < 10000 else entry_cash    # 1만원 보다 작은 포지션은 들어가지 않는다.
 
         # amount 계산
