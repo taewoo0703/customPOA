@@ -961,16 +961,20 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
 
         # 2-1. 켈트너 전략 진입 시그널
         if order_name in kctrend_buy_signal_list:
-            ## (1) 켈트너 전략 진입 (Hatiko 전략의 포지션을 켈트너 전략으로 편입)
+            ## (1) 켈트너 전략 기진입 여부 확인
+            if order_info.base in kctrend_long_list:
+                return {"result" : "ignore"}
+            
+            ## (2) 켈트너 전략 진입 (Hatiko 전략의 포지션을 켈트너 전략으로 편입)
             order_info.amount = get_amount_kctrend_haitko(order_info, bot)
             if order_info.amount > 0:
                 order_result = bot.market_order(order_info)
 
-            ## (2) 켈트너 목록 추가
+            ## (3) 켈트너 목록 추가
             if not order_info.base in kctrend_long_list:
                 kctrend_long_list.append(order_info.base)
 
-            ## (3) Hatiko 목록 초기화       
+            ## (4) Hatiko 목록 초기화       
             if order_info.base in hatiko_long1_list:
                 hatiko_long1_list.remove(order_info.base)
             if order_info.base in hatiko_long2_list:
@@ -982,12 +986,16 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
         
         # 2-2. 켈트너 전략 청산 시그널
         elif order_name in kctrend_sell_signal_list:
-            ## (1) 켈트너 전략 청산
+            ## (1) 켈트너 전략 포지션 확인
+            if not order_info.base in kctrend_long_list:
+                return {"result" : "ignore"}
+            
+            ## (2) 켈트너 전략 청산
             order_info.amount = get_amount_kctrend_haitko(order_info, bot)
             if order_info.amount > 0:
                 order_result = bot.market_order(order_info)
 
-            ## (2) 켈트너 목록 초기화
+            ## (3) 켈트너 목록 초기화
             if order_info.base in kctrend_long_list:
                 kctrend_long_list.remove(order_info.base)
             
