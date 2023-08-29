@@ -866,8 +866,15 @@ def get_amount_kctrend_haitko(order_info: MarketOrder, bot):
     hatiko_buy_signal_list = ["Long1", "Long2", "Long3", "Long4"]
 
     # upbit 계좌 상태 읽어오기
-    free_cash = bot.get_balance(order_info.quote)
-    free_coin = bot.get_balance(order_info.base)
+    try :
+        free_cash = bot.get_balance(order_info.quote)
+    except:
+        free_cash = 0.0
+
+    try:
+        free_coin = bot.get_balance(order_info.base)
+    except:
+        free_coin = 0.0
 
     # 진입 오더의 경우
     if order_info.is_spot and order_info.is_buy:
