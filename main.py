@@ -859,7 +859,7 @@ def match_hatiko_long_list(order_name: str):
     if order_name in ["nearLong4", "Long4", "NextCandle_L4"]:
         return hatiko_long4_list
 
-def get_amount_kctrend_haitko(order_info: MarketOrder, bot):
+def get_amount_kctrend_hatiko(order_info: MarketOrder, bot):
     global kctrend_long_list, hatiko_long1_list, hatiko_long2_list, hatiko_long3_list, hatiko_long4_list
 
     kctrend_buy_signal_list = ["kctrend Long"]
@@ -904,7 +904,7 @@ def get_amount_kctrend_haitko(order_info: MarketOrder, bot):
             
         # case 2) Hatiko 진입 오더
         if order_info.order_name in hatiko_buy_signal_list:
-            # haitko 신규 포지션에 사용할 cash 계산
+            # hatiko 신규 포지션에 사용할 cash 계산
             cash_for_hatiko = total_cash / 8
             entry_cash = cash_for_hatiko
         # ---------------------------------------------
@@ -945,7 +945,7 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
     kctrend_sell_signal_list = ["kctrend Long Close"]
     hatiko_buy_signal_list = ["Long1", "Long2", "Long3", "Long4"]
     hatiko_sell_signal_list = ["close Longs on open", "TakeProfitL1"]
-    haitko_ignore_signal_list = ["TakeProfitL2", "TakeProfitL3", "TakeProfitL4"]
+    hatiko_ignore_signal_list = ["TakeProfitL2", "TakeProfitL3", "TakeProfitL4"]
 
     # order_result 변수 선언
     order_result = None
@@ -966,7 +966,7 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
                 return {"result" : "ignore"}
             
             ## (2) 켈트너 전략 진입 (Hatiko 전략의 포지션을 켈트너 전략으로 편입)
-            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_info.amount = get_amount_kctrend_hatiko(order_info, bot)
             if order_info.amount > 0:
                 order_result = bot.market_order(order_info)
 
@@ -991,7 +991,7 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
                 return {"result" : "ignore"}
             
             ## (2) 켈트너 전략 청산
-            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_info.amount = get_amount_kctrend_hatiko(order_info, bot)
             if order_info.amount > 0:
                 order_result = bot.market_order(order_info)
 
@@ -1011,7 +1011,7 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
                 return {"result" : "ignore"}
 
             ## (3) Hatiko 전략 진입
-            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_info.amount = get_amount_kctrend_hatiko(order_info, bot)
             if order_info.amount > 0:
                 order_result = bot.market_order(order_info)
 
@@ -1029,7 +1029,7 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
                 return {"result" : "ignore"}
             
             ## (3) Hatiko 전략 청산
-            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_info.amount = get_amount_kctrend_hatiko(order_info, bot)
             if order_info.amount > 0:
                 order_result = bot.market_order(order_info)
 
@@ -1044,7 +1044,7 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
                 hatiko_long4_list.remove(order_info.base)
         
         # 2-5. 무시하는 시그널
-        elif order_name in haitko_ignore_signal_list:
+        elif order_name in hatiko_ignore_signal_list:
             return {"result" : "ignore"}
         # 2-6. 예상 외의 시그널
         else:
@@ -1092,7 +1092,7 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
     kctrend_sell_signal_list = ["kctrend Long Close"]
     hatiko_buy_signal_list = ["Long1", "Long2", "Long3", "Long4"]
     hatiko_sell_signal_list = ["close Longs on open", "TakeProfitL1"]
-    haitko_ignore_signal_list = ["TakeProfitL2", "TakeProfitL3", "TakeProfitL4"]
+    hatiko_ignore_signal_list = ["TakeProfitL2", "TakeProfitL3", "TakeProfitL4"]
 
     # order_result 변수 선언
     order_result = None
@@ -1109,7 +1109,7 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
         # 2-1. 켈트너 전략 진입 시그널
         if order_name in kctrend_buy_signal_list:
             ## (1) 켈트너 전략 진입 (Hatiko 전략의 포지션을 켈트너 전략으로 편입)
-            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_info.amount = get_amount_kctrend_hatiko(order_info, bot)
             if order_info.amount > 0:
                 order_result = bot.limit_order(order_info)
 
@@ -1130,7 +1130,7 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
         # 2-2. 켈트너 전략 청산 시그널
         elif order_name in kctrend_sell_signal_list:
             ## (1) 켈트너 전략 청산
-            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_info.amount = get_amount_kctrend_hatiko(order_info, bot)
             if order_info.amount > 0:
                 order_result = bot.limit_order(order_info)
 
@@ -1150,7 +1150,7 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
                 return {"result" : "ignore"}
 
             ## (3) Hatiko 전략 진입
-            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_info.amount = get_amount_kctrend_hatiko(order_info, bot)
             if order_info.amount > 0:
                 order_result = bot.limit_order(order_info)
 
@@ -1168,7 +1168,7 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
                 return {"result" : "ignore"}
             
             ## (3) Hatiko 전략 청산
-            order_info.amount = get_amount_kctrend_haitko(order_info, bot)
+            order_info.amount = get_amount_kctrend_hatiko(order_info, bot)
             if order_info.amount > 0:
                 order_result = bot.limit_order(order_info)
 
@@ -1183,7 +1183,7 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
                 hatiko_long4_list.remove(order_info.base)
         
         # 2-5. 무시하는 시그널
-        elif order_name in haitko_ignore_signal_list:
+        elif order_name in hatiko_ignore_signal_list:
             return {"result" : "ignore"}
         # 2-6. 예상 외의 시그널
         else:
