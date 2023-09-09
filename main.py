@@ -364,6 +364,16 @@ Short2_list = []
 Short3_list = []
 Short4_list = []
 
+# 지정가 Hatiko용 무시할 시그널 리스트
+nearLong1_ignore_list = []
+nearLong2_ignore_list = []
+nearLong3_ignore_list = []
+nearLong4_ignore_list = []
+nearShort1_ignore_list = []
+nearShort2_ignore_list = []
+nearShort3_ignore_list = []
+nearShort4_ignore_list = []
+
 # Hatiko 봇 에러 시 재진입 횟수
 nMaxTry = 5
 
@@ -415,6 +425,31 @@ def matchEntryList(order_name):
     if order_name in ["nearShort4", "Short4", "NextCandle_S4"]:
         return Short4_list
     
+def matchNearIgnoreList(order_name):
+    """
+    order_name에 따라 해당하는 near_ignore리스트를 반환
+    예시) input : "NextCandle_L1" -> output : "nearLong1_ignore_list"
+    """
+    global nearLong1_ignore_list, nearLong2_ignore_list, nearLong3_ignore_list, nearLong4_ignore_list
+    global nearShort1_ignore_list, nearShort2_ignore_list, nearShort3_ignore_list, nearShort4_ignore_list
+
+    if order_name in ["nearLong1", "Long1", "NextCandle_L1"]:
+        return nearLong1_ignore_list
+    if order_name in ["nearLong2", "Long2", "NextCandle_L2"]:
+        return nearLong2_ignore_list
+    if order_name in ["nearLong3", "Long3", "NextCandle_L3"]:
+        return nearLong3_ignore_list
+    if order_name in ["nearLong4", "Long4", "NextCandle_L4"]:
+        return nearLong4_ignore_list
+    if order_name in ["nearShort1", "Short1", "NextCandle_S1"]:
+        return nearShort1_ignore_list
+    if order_name in ["nearShort2", "Short2", "NextCandle_S2"]:
+        return nearShort2_ignore_list
+    if order_name in ["nearShort3", "Short3", "NextCandle_S3"]:
+        return nearShort3_ignore_list
+    if order_name in ["nearShort4", "Short4", "NextCandle_S4"]:
+        return nearShort4_ignore_list
+
 # Hatiko Limit 관련 메모리 모니터
 @ app.get("/hatikolimitinfo")
 async def hatikolimitinfo():
@@ -434,7 +469,15 @@ async def hatikolimitinfo():
         "Short1_list" : str(Short1_list),
         "Short2_list" : str(Short2_list),
         "Short3_list" : str(Short3_list),
-        "Short4_list" : str(Short4_list)
+        "Short4_list" : str(Short4_list),
+        "nearLong1_ignore_list"  : str(nearLong1_ignore_list),
+        "nearLong2_ignore_list"  : str(nearLong2_ignore_list),
+        "nearLong3_ignore_list"  : str(nearLong3_ignore_list),
+        "nearLong4_ignore_list"  : str(nearLong4_ignore_list),
+        "nearShort1_ignore_list" : str(nearShort1_ignore_list),
+        "nearShort2_ignore_list" : str(nearShort2_ignore_list),
+        "nearShort3_ignore_list" : str(nearShort3_ignore_list),
+        "nearShort4_ignore_list" : str(nearShort4_ignore_list),
         }
     return res
 
@@ -445,6 +488,8 @@ async def inithatiko():
     global nearShort1_dic, nearShort2_dic, nearShort3_dic, nearShort4_dic
     global Long1_list, Long2_list, Long3_list, Long4_list
     global Short1_list, Short2_list, Short3_list, Short4_list
+    global nearLong1_ignore_list, nearLong2_ignore_list, nearLong3_ignore_list, nearLong4_ignore_list
+    global nearShort1_ignore_list, nearShort2_ignore_list, nearShort3_ignore_list, nearShort4_ignore_list
 
     nearLong1_dic = {}
     nearLong2_dic = {}
@@ -464,6 +509,15 @@ async def inithatiko():
     Short3_list = []
     Short4_list = []
 
+    nearLong1_ignore_list = []
+    nearLong2_ignore_list = []
+    nearLong3_ignore_list = []
+    nearLong4_ignore_list = []
+    nearShort1_ignore_list = []
+    nearShort2_ignore_list = []
+    nearShort3_ignore_list = []
+    nearShort4_ignore_list = []
+
     res = "Intialize Hatiko Variables Completed!!!"
     return res
 
@@ -472,23 +526,38 @@ async def inithatiko():
 async def hatikolimit(order_info: MarketOrder, background_tasks: BackgroundTasks):
     nMaxLong = 1
     nMaxShort = 1
-    hatikolimitBase(order_info, background_tasks, nMaxLong, nMaxShort)
+    nIgnoreLong = 0
+    nIgnoreShort = 0
+    hatikolimitBase(order_info, background_tasks, nMaxLong, nMaxShort, nIgnoreLong, nIgnoreShort)
 
 @ app.post("/hatikolimit2")
 @ app.post("/")
 async def hatikolimit2(order_info: MarketOrder, background_tasks: BackgroundTasks):
     nMaxLong = 2
     nMaxShort = 1
-    hatikolimitBase(order_info, background_tasks, nMaxLong, nMaxShort)
+    nIgnoreLong = 0
+    nIgnoreShort = 0
+    hatikolimitBase(order_info, background_tasks, nMaxLong, nMaxShort, nIgnoreLong, nIgnoreShort)
 
 @ app.post("/hatikolimit4")
 @ app.post("/")
 async def hatikolimit4(order_info: MarketOrder, background_tasks: BackgroundTasks):
     nMaxLong = 4
     nMaxShort = 1
-    hatikolimitBase(order_info, background_tasks, nMaxLong, nMaxShort)
+    nIgnoreLong = 0
+    nIgnoreShort = 0
+    hatikolimitBase(order_info, background_tasks, nMaxLong, nMaxShort, nIgnoreLong, nIgnoreShort)
 
-def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, nMaxLong: int, nMaxShort: int):
+@ app.post("/hatikolimit2_ignore1")
+@ app.post("/")
+async def hatikolimit2_ignore1(order_info: MarketOrder, background_tasks: BackgroundTasks):
+    nMaxLong = 2
+    nMaxShort = 1
+    nIgnoreLong = 1
+    nIgnoreShort = 0
+    hatikolimitBase(order_info, background_tasks, nMaxLong, nMaxShort, nIgnoreLong, nIgnoreShort)
+
+def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, nMaxLong: int, nMaxShort: int, nIgnoreLong: int, nIgnoreShort: int):
     """
     지정가 Hatiko 전략
 
@@ -515,6 +584,8 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
     global nearShort1_dic, nearShort2_dic, nearShort3_dic, nearShort4_dic
     global Long1_list, Long2_list, Long3_list, Long4_list
     global Short1_list, Short2_list, Short3_list, Short4_list
+    global nearLong1_ignore_list, nearLong2_ignore_list, nearLong3_ignore_list, nearLong4_ignore_list
+    global nearShort1_ignore_list, nearShort2_ignore_list, nearShort3_ignore_list, nearShort4_ignore_list
     global nMaxTry
 
     # order_name 리스트
@@ -551,7 +622,16 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 # near 시그널 처리
                 # 예시) nearLong1 시그널 수신
                 # nearLong1_dic 최대개수 확인 -> 미달 시, 지정가 매수주문 -> 성공 시, nearLong1_dic에 추가
-                
+
+                # 0. 먼저 발생하는 시그널 무시
+                near_ignore_list = matchNearIgnoreList(order_info.order_name)
+                if (order_info.side == "buy" and len(near_ignore_list) < nIgnoreLong) or \
+                    (order_info.side == "sell" and len(near_ignore_list) < nIgnoreShort):
+                    if not order_info.base in near_ignore_list:
+                        near_ignore_list.append(order_info.base)
+                    background_tasks.add_task(log_custom_message, order_info, "IGNORE")
+                    return {"result" : "ignore"}
+
                 # 1. 종목 최대개수 확인
                 near_dic = matchNearDic(order_info.order_name)
                 if order_info.side == "buy" and (len(near_dic) >= nMaxLong or order_info.base in near_dic):
@@ -685,6 +765,24 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 # 예시) 청산 시그널 수신
                 # 해당 종목이 nearLong1_list에 존재하는지 확인 -> 존재 시, 청산 주문 & 미체결 주문 취소 -> 성공 시, 존재하는 모든 리스트에서 제거
                 
+                # 0. near_ignore_list 초기화
+                if order_info.base in nearLong1_ignore_list:
+                    nearLong1_ignore_list. remove(order_info.base)
+                if order_info.base in nearLong2_ignore_list:
+                    nearLong2_ignore_list. remove(order_info.base)
+                if order_info.base in nearLong3_ignore_list:
+                    nearLong3_ignore_list. remove(order_info.base)
+                if order_info.base in nearLong4_ignore_list:
+                    nearLong4_ignore_list. remove(order_info.base)
+                if order_info.base in nearShort1_ignore_list:
+                    nearShort1_ignore_list. remove(order_info.base)
+                if order_info.base in nearShort2_ignore_list:
+                    nearShort2_ignore_list. remove(order_info.base)
+                if order_info.base in nearShort3_ignore_list:
+                    nearShort3_ignore_list. remove(order_info.base)
+                if order_info.base in nearShort4_ignore_list:
+                    nearShort4_ignore_list. remove(order_info.base)
+
                 # 1. 안 산 주문에 대한 종료 무시
                 if order_info.base not in (list(nearLong1_dic) + list(nearLong2_dic) + list(nearLong3_dic) + list(nearLong4_dic) + \
                                             list(nearShort1_dic) + list(nearShort2_dic) + list(nearShort3_dic) + list(nearShort4_dic)):
