@@ -736,6 +736,11 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                     if order["status"] == "canceled":
                         amountCanceled = order["amount"]
                         sideCanceled = order["side"]
+                    elif order["status"] == "closed":
+                        # 트뷰로부터 특정 시그널 손실로 인해 이미 체결된 주문인 경우
+                        entry_list.append(order_info.base)
+                        background_tasks.add_task(log_custom_message, order_info, "ORDER_CLOSED")
+                        return {"result" : "ignore"}
                     else:
                         resultCancel = bot.client.cancel_order(orderID, symbol)
                         if resultCancel["status"] == "canceled":
@@ -767,21 +772,21 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 
                 # 0. near_ignore_list 초기화
                 if order_info.base in nearLong1_ignore_list:
-                    nearLong1_ignore_list. remove(order_info.base)
+                    nearLong1_ignore_list.remove(order_info.base)
                 if order_info.base in nearLong2_ignore_list:
-                    nearLong2_ignore_list. remove(order_info.base)
+                    nearLong2_ignore_list.remove(order_info.base)
                 if order_info.base in nearLong3_ignore_list:
-                    nearLong3_ignore_list. remove(order_info.base)
+                    nearLong3_ignore_list.remove(order_info.base)
                 if order_info.base in nearLong4_ignore_list:
-                    nearLong4_ignore_list. remove(order_info.base)
+                    nearLong4_ignore_list.remove(order_info.base)
                 if order_info.base in nearShort1_ignore_list:
-                    nearShort1_ignore_list. remove(order_info.base)
+                    nearShort1_ignore_list.remove(order_info.base)
                 if order_info.base in nearShort2_ignore_list:
-                    nearShort2_ignore_list. remove(order_info.base)
+                    nearShort2_ignore_list.remove(order_info.base)
                 if order_info.base in nearShort3_ignore_list:
-                    nearShort3_ignore_list. remove(order_info.base)
+                    nearShort3_ignore_list.remove(order_info.base)
                 if order_info.base in nearShort4_ignore_list:
-                    nearShort4_ignore_list. remove(order_info.base)
+                    nearShort4_ignore_list.remove(order_info.base)
 
                 # 1. 안 산 주문에 대한 종료 무시
                 if order_info.base not in (list(nearLong1_dic) + list(nearLong2_dic) + list(nearLong3_dic) + list(nearLong4_dic) + \

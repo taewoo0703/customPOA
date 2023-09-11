@@ -261,7 +261,7 @@ def log_alert_message(order_info: MarketOrder, result="성공"):
     print_alert_message(order_info, result)
 
 # by PTW
-MESSAGE_TYPE_LITERAL = Literal["RECV_TRADINGVIEW", "ENTRY_SIGNAL", "CANCEL_ORDER", "IGNORE", "ORDER_NAME_INCORRECT", "RECV_BUT_NO_ORDER"]
+MESSAGE_TYPE_LITERAL = Literal["RECV_TRADINGVIEW", "ENTRY_SIGNAL", "CANCEL_ORDER", "IGNORE", "ORDER_CLOSED", "ORDER_NAME_INCORRECT", "RECV_BUT_NO_ORDER"]
 def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     embed = Embed(  
     title=order_info.order_name,
@@ -290,6 +290,14 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
         embed = Embed(  
             title=order_info.order_name,
             description=f"{order_info.base} 시그널 무시",
+            color=0xFFFFFF,
+        )
+    
+    # [Hatiko] NextCandle 시그널이 왔는데 오더 이미 체결됨 (트뷰로부터 이전 시그널 손실된 경우)
+    if msg_type == "ORDER_CLOSED":
+        embed = Embed(  
+            title=order_info.order_name,
+            description=f"{order_info.base} - 이미 체결된 주문",
             color=0xFFFFFF,
         )
     
