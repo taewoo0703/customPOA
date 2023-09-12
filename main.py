@@ -7,7 +7,7 @@ from fastapi.responses import ORJSONResponse, RedirectResponse
 from fastapi.exceptions import RequestValidationError
 import httpx
 from exchange.stock.kis import KoreaInvestment
-from exchange.model import MarketOrder, PriceRequest, HedgeData, OrderRequest
+from exchange.model import MarketOrder, PriceRequest, HedgeData, OrderRequest, ArbiData
 from exchange.utility import (
     settings,
     log_order_message,
@@ -19,7 +19,8 @@ from exchange.utility import (
     log_hedge_message,
     log_error_message,
     log_message,
-	log_custom_message
+	log_custom_message,
+    log_arbi_message
 )
 import traceback
 from exchange import get_exchange, log_message, db, settings, get_bot, pocket
@@ -28,7 +29,7 @@ import os
 import sys
 from devtools import debug
 
-VERSION = "POA : 0.1.1, Hatiko : 230826"
+VERSION = "POA : 0.1.1, Hatiko : 230913"
 app = FastAPI(default_response_class=ORJSONResponse)
 
 
@@ -773,20 +774,28 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 # 0. near_ignore_list 초기화
                 if order_info.base in nearLong1_ignore_list:
                     nearLong1_ignore_list.remove(order_info.base)
+                    log_message(f"{order_info.base} nearLong1 무시 해제")
                 if order_info.base in nearLong2_ignore_list:
                     nearLong2_ignore_list.remove(order_info.base)
+                    log_message(f"{order_info.base} nearLong2 무시 해제")
                 if order_info.base in nearLong3_ignore_list:
                     nearLong3_ignore_list.remove(order_info.base)
+                    log_message(f"{order_info.base} nearLong3 무시 해제")
                 if order_info.base in nearLong4_ignore_list:
                     nearLong4_ignore_list.remove(order_info.base)
+                    log_message(f"{order_info.base} nearLong4 무시 해제")
                 if order_info.base in nearShort1_ignore_list:
                     nearShort1_ignore_list.remove(order_info.base)
+                    log_message(f"{order_info.base} nearShort1 무시 해제")
                 if order_info.base in nearShort2_ignore_list:
                     nearShort2_ignore_list.remove(order_info.base)
+                    log_message(f"{order_info.base} nearShort2 무시 해제")
                 if order_info.base in nearShort3_ignore_list:
                     nearShort3_ignore_list.remove(order_info.base)
+                    log_message(f"{order_info.base} nearShort3 무시 해제")
                 if order_info.base in nearShort4_ignore_list:
                     nearShort4_ignore_list.remove(order_info.base)
+                    log_message(f"{order_info.base} nearShort4 무시 해제")
 
                 # 1. 안 산 주문에 대한 종료 무시
                 if order_info.base not in (list(nearLong1_dic) + list(nearLong2_dic) + list(nearLong3_dic) + list(nearLong4_dic) + \
@@ -1312,3 +1321,140 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
 
     finally:
         pass
+
+
+
+
+############################### [Hedge 변형] 선물 간 차익거래 #################################
+
+
+
+def get_arbi_records(base: str, exchange_name_long: str, exchange_name_short: str):
+    records = pocket.get_full_list("arbitrage", query_params={"filter": f'base = "{base}"'})
+    short_amount = 0.0
+    short_records_id = []
+    long_amount = 0.0
+    long_records_id = []
+    for record in records:
+        if record.exchange == exchange_name_short:
+            short_amount += record.amount
+            short_records_id.append(record.id)
+        elif record.exchange == exchange_name_long:
+            long_amount += record.amount
+            long_records_id.append(record.id)
+
+    return {
+        exchange_name_short: {"amount": short_amount, "records_id": short_records_id},
+        exchange_name_long: {"amount": long_amount, "records_id": long_records_id},
+    }
+
+@app.post("/arbitrage")
+async def arbitrage(arbi_data: ArbiData, background_tasks: BackgroundTasks):
+    exchange_name_long = arbi_data.exchange_long.upper()
+    exchange_name_short = arbi_data.exchange_short.upper()
+    bot_long = get_bot(exchange_name_long) #upbit = get_bot("UPBIT")
+    bot_short = get_bot(exchange_name_short) #bot = get_bot(exchange_name)
+    
+    base = arbi_data.base
+    quote = arbi_data.quote
+    amount = arbi_data.amount
+    leverage = arbi_data.leverage
+    hedge = arbi_data.hedge
+
+    short_order_info = OrderRequest(
+        exchange=exchange_name_short,
+        base=base,
+        quote=quote,
+        side="entry/sell",
+        type="market",
+        amount=amount,
+        leverage=leverage,
+    )
+    bot_short.init_info(short_order_info)
+
+    if hedge == "ON":
+        try:
+            if amount is None:
+                raise Exception("헷지할 수량을 요청하세요")
+            short_order_result = bot_short.market_entry(short_order_info)
+            short_order_amount = short_order_result["amount"]
+            
+            pocket.create("arbitrage", {"exchange": exchange_name_short, "base": base, "quote": quote, "amount": short_order_amount})
+            if leverage is None:
+                leverage = 1
+            try:
+                long_order_info = OrderRequest(
+                    exchange=exchange_name_long,
+                    base=base,
+                    quote=quote,
+                    side="entry/buy",
+                    type="market",
+                    amount=short_order_amount,
+                )
+                bot_long.init_info(long_order_info)
+                long_order_result = bot_long.market_entry(long_order_info)
+            except Exception as e:
+                hedge_records = get_arbi_records(base, exchange_name_long, exchange_name_short)
+                short_records_id = hedge_records[exchange_name_short]["records_id"]
+                short_amount = hedge_records[exchange_name_short]["amount"]
+                short_order_result = bot_short.market_close(
+                    OrderRequest(
+                        exchange=exchange_name_short, base=base, quote=quote, side="close/buy", amount=short_amount
+                    )
+                )
+                for short_record_id in short_records_id:
+                    pocket.delete("arbitrage", short_record_id)
+                log_message("[헷지 실패] Long에서 에러가 발생하여 이에 상응하는 Short 포지션을 종료합니다")
+            else:
+                # upbit_order_info = bot_long.get_order(long_order_result["id"])
+                # upbit_order_amount = upbit_order_info["filled"]
+                long_order_amount = long_order_result["amount"]
+                pocket.create("arbitrage", {"exchange": exchange_name_long, "base": base, "quote": quote, "amount": long_order_amount})
+                log_arbi_message(exchange_name_long, exchange_name_short, base, quote, long_order_amount, short_order_amount, hedge)
+
+        except Exception as e:
+            # log_message(f"{e}")
+            background_tasks.add_task(log_error_message, traceback.format_exc(), "헷지 에러")
+            return {"result": "error"}
+        else:
+            return {"result": "success"}
+
+    elif hedge == "OFF":
+        try:
+            records = pocket.get_full_list("arbitrage", query_params={"filter": f'base = "{base}"'})
+            short_amount = 0.0
+            short_records_id = []
+            long_amount = 0.0
+            long_records_id = []
+            for record in records:
+                if record.exchange == exchange_name_short:
+                    short_amount += record.amount
+                    short_records_id.append(record.id)
+                elif record.exchange == exchange_name_long:
+                    long_amount += record.amount
+                    long_records_id.append(record.id)
+
+            if short_amount > 0 and long_amount > 0:
+                # 숏 종료
+                order_info = OrderRequest(exchange=exchange_name_short, base=base, quote=quote, side="close/buy", amount=short_amount)
+                short_order_result = bot_short.market_close(order_info)
+                for short_record_id in short_records_id:
+                    pocket.delete("arbitrage", short_record_id)
+                # 롱 종료
+                order_info = OrderRequest(exchange=exchange_name_long, base=base, quote=quote, side="close/sell", amount=long_amount)
+                long_order_result = bot_long.market_close(order_info)
+                for long_record_id in long_records_id:
+                    pocket.delete("arbitrage", long_record_id)
+
+                log_arbi_message(exchange_name_long, exchange_name_short, base, quote, long_amount, short_amount, hedge)
+            elif short_amount == 0 and long_amount == 0:
+                log_message(f"{exchange_name_short}, {exchange_name_long}에 종료할 수량이 없습니다")
+            elif short_amount == 0:
+                log_message(f"{exchange_name_short}에 종료할 수량이 없습니다")
+            elif long_amount == 0:
+                log_message(f"{exchange_name_long}에 종료할 수량이 없습니다")
+        except Exception as e:
+            background_tasks.add_task(log_error_message, traceback.format_exc(), "헷지종료 에러")
+            return {"result": "error"}
+        else:
+            return {"result": "success"}
