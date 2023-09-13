@@ -319,3 +319,31 @@ class HedgeData(BaseModel):
             if key in ("exchange", "base", "quote", "hedge"):
                 values[key] = value.upper()
         return values
+
+##############################################################################
+# by PTW
+##############################################################################
+
+class ArbiData(BaseModel):
+    password: str
+    exchange_long: Literal["BINANCE", "BYBIT", "BITGET", "OKX"]
+    exchange_short: Literal["BINANCE", "BYBIT", "BITGET", "OKX"]
+    base: str
+    quote: QUOTE_LITERAL = "USDT.P"
+    amount: float | None = None
+    leverage: int | None = None
+    hedge: str
+
+    @validator("password")
+    def password_validate(cls, v):
+        setting = Settings()
+        if v != setting.PASSWORD:
+            raise ValueError("비밀번호가 틀렸습니다")
+        return v
+
+    @root_validator(pre=True)
+    def root_validate(cls, values):
+        for key, value in values.items():
+            if key in ("exchange_long", "exchange_short" "base", "quote", "hedge"):
+                values[key] = value.upper()
+        return values
