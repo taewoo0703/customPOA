@@ -260,7 +260,13 @@ def log_alert_message(order_info: MarketOrder, result="성공"):
     # logger
     print_alert_message(order_info, result)
 
+
+
+
+################################################
 # by PTW
+################################################
+
 MESSAGE_TYPE_LITERAL = Literal["RECV_TRADINGVIEW", "ENTRY_SIGNAL", "CANCEL_ORDER", "IGNORE", "ORDER_CLOSED", "ORDER_NAME_INCORRECT", "RECV_BUT_NO_ORDER"]
 def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     embed = Embed(  
@@ -318,3 +324,19 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
         )
 
     log_message(embed=embed)
+
+def log_arbi_message(exchange_long, exchange_short, base, quote, long_amount, short_amount, hedge):
+    date = parse_time(datetime.utcnow().timestamp())
+    hedge_type = "Arbitrage 진입" if hedge == "ON" else "Arbitrage 종료"
+    content = f"{hedge_type}: {base} ==> {exchange_long}:{long_amount} {exchange_short}:{short_amount}"
+    embed = Embed(title="선물-선물 Arbitrage", description=content, color=0x0000FF)
+    embed.add_field(name="일시", value=str(date), inline=False)
+    embed.add_field(name="거래소", value=f"{exchange_long}-{exchange_short}", inline=False)
+    embed.add_field(name="심볼", value=f"{base}/{quote}", inline=False)
+    embed.add_field(name="거래유형", value=hedge_type, inline=False)
+    embed.add_field(
+        name="수량",
+        value=f"{exchange_long}:{long_amount} {exchange_short}:{short_amount}",
+        inline=False,
+    )
+    log_message(content, embed)
