@@ -29,7 +29,7 @@ import os
 import sys
 from devtools import debug
 
-VERSION = "POA : 0.1.1, Hatiko : 230913"
+VERSION = "POA : 0.1.1, Hatiko : 230914"
 app = FastAPI(default_response_class=ORJSONResponse)
 
 
@@ -1327,18 +1327,6 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
 
 ############################### [Hedge 변형] 선물 간 차익거래 #################################
 
-<<<<<<< HEAD
-@app.post("/arbitrage")
-async def arbitrage(arbi_data: ArbiData, background_tasks: BackgroundTasks):
-    exchange_long_name = arbi_data.exchange_long.upper()
-    exchange_short_name = arbi_data.exchange_short.upper()
-
-    long_bot = get_bot(exchange_long_name) #upbit = get_bot("UPBIT")
-    short_bot = get_bot(exchange_short_name) #bot = get_bot(exchange_name)
-
-=======
-
-
 def get_arbi_records(base: str, exchange_name_long: str, exchange_name_short: str):
     records = pocket.get_full_list("arbitrage", query_params={"filter": f'base = "{base}"'})
     short_amount = 0.0
@@ -1365,7 +1353,6 @@ async def arbitrage(arbi_data: ArbiData, background_tasks: BackgroundTasks):
     bot_long = get_bot(exchange_name_long) #upbit = get_bot("UPBIT")
     bot_short = get_bot(exchange_name_short) #bot = get_bot(exchange_name)
     
->>>>>>> 97afc78ab10aaa47e8936dc0277b87fcd7db87e2
     base = arbi_data.base
     quote = arbi_data.quote
     amount = arbi_data.amount
@@ -1373,11 +1360,7 @@ async def arbitrage(arbi_data: ArbiData, background_tasks: BackgroundTasks):
     hedge = arbi_data.hedge
 
     short_order_info = OrderRequest(
-<<<<<<< HEAD
-        exchange=exchange_short_name,
-=======
         exchange=exchange_name_short,
->>>>>>> 97afc78ab10aaa47e8936dc0277b87fcd7db87e2
         base=base,
         quote=quote,
         side="entry/sell",
@@ -1385,66 +1368,12 @@ async def arbitrage(arbi_data: ArbiData, background_tasks: BackgroundTasks):
         amount=amount,
         leverage=leverage,
     )
-<<<<<<< HEAD
-    short_bot.init_info(short_order_info)
-
-
-    # foreign_order_info = OrderRequest(
-    #     exchange=exchange_name,
-    #     base=base,
-    #     quote=quote,
-    #     side="entry/sell",
-    #     type="market",
-    #     amount=amount,.
-    #     leverage=leverage,
-    # )
-    # bot.init_info(short_order_info)
-
-
-=======
     bot_short.init_info(short_order_info)
->>>>>>> 97afc78ab10aaa47e8936dc0277b87fcd7db87e2
 
     if hedge == "ON":
         try:
             if amount is None:
                 raise Exception("헷지할 수량을 요청하세요")
-<<<<<<< HEAD
-            short_order_result = short_bot.market_entry(short_order_info)
-            binance_order_amount = short_order_result["amount"]
-            
-            pocket.create("kimp", {"exchange": "BINANCE", "base": base, "quote": quote, "amount": binance_order_amount})
-            if leverage is None:
-                leverage = 1
-            try:
-                korea_order_info = OrderRequest(
-                    exchange="UPBIT",
-                    base=base,
-                    quote="KRW",
-                    side="buy",
-                    type="market",
-                    amount=binance_order_amount,
-                )
-                upbit.init_info(korea_order_info)
-                upbit_order_result = upbit.market_buy(korea_order_info)
-            except Exception as e:
-                hedge_records = get_hedge_records(base)
-                binance_records_id = hedge_records["BINANCE"]["records_id"]
-                binance_amount = hedge_records["BINANCE"]["amount"]
-                short_order_result = short_bot.market_close(
-                    OrderRequest(
-                        exchange=exchange_name, base=base, quote=quote, side="close/buy", amount=binance_amount
-                    )
-                )
-                for binance_record_id in binance_records_id:
-                    pocket.delete("kimp", binance_record_id)
-                log_message("[헷지 실패] 업비트에서 에러가 발생하여 바이낸스 포지션을 종료합니다")
-            else:
-                upbit_order_info = upbit.get_order(upbit_order_result["id"])
-                upbit_order_amount = upbit_order_info["filled"]
-                pocket.create("kimp", {"exchange": "UPBIT", "base": base, "quote": "KRW", "amount": upbit_order_amount})
-                log_hedge_message(exchange_name, base, quote, binance_order_amount, upbit_order_amount, hedge)
-=======
             short_order_result = bot_short.market_entry(short_order_info)
             short_order_amount = short_order_result["amount"]
             
@@ -1480,7 +1409,6 @@ async def arbitrage(arbi_data: ArbiData, background_tasks: BackgroundTasks):
                 long_order_amount = long_order_result["amount"]
                 pocket.create("arbitrage", {"exchange": exchange_name_long, "base": base, "quote": quote, "amount": long_order_amount})
                 log_arbi_message(exchange_name_long, exchange_name_short, base, quote, long_order_amount, short_order_amount, hedge)
->>>>>>> 97afc78ab10aaa47e8936dc0277b87fcd7db87e2
 
         except Exception as e:
             # log_message(f"{e}")
@@ -1491,42 +1419,6 @@ async def arbitrage(arbi_data: ArbiData, background_tasks: BackgroundTasks):
 
     elif hedge == "OFF":
         try:
-<<<<<<< HEAD
-            records = pocket.get_full_list("kimp", query_params={"filter": f'base = "{base}"'})
-            binance_amount = 0.0
-            binance_records_id = []
-            upbit_amount = 0.0
-            upbit_records_id = []
-            for record in records:
-                if record.exchange == "BINANCE":
-                    binance_amount += record.amount
-                    binance_records_id.append(record.id)
-                elif record.exchange == "UPBIT":
-                    upbit_amount += record.amount
-                    upbit_records_id.append(record.id)
-
-            if binance_amount > 0 and upbit_amount > 0:
-                # 바이낸스
-                order_info = OrderRequest(
-                    exchange="BINANCE", base=base, quote=quote, side="close/buy", amount=binance_amount
-                )
-                short_order_result = short_bot.market_close(order_info)
-                for binance_record_id in binance_records_id:
-                    pocket.delete("kimp", binance_record_id)
-                # 업비트
-                order_info = OrderRequest(exchange="UPBIT", base=base, quote="KRW", side="sell", amount=upbit_amount)
-                upbit_order_result = upbit.market_sell(order_info)
-                for upbit_record_id in upbit_records_id:
-                    pocket.delete("kimp", upbit_record_id)
-
-                log_hedge_message(exchange_name, base, quote, binance_amount, upbit_amount, hedge)
-            elif binance_amount == 0 and upbit_amount == 0:
-                log_message(f"{exchange_name}, UPBIT에 종료할 수량이 없습니다")
-            elif binance_amount == 0:
-                log_message(f"{exchange_name}에 종료할 수량이 없습니다")
-            elif upbit_amount == 0:
-                log_message("UPBIT에 종료할 수량이 없습니다")
-=======
             records = pocket.get_full_list("arbitrage", query_params={"filter": f'base = "{base}"'})
             short_amount = 0.0
             short_records_id = []
@@ -1559,7 +1451,6 @@ async def arbitrage(arbi_data: ArbiData, background_tasks: BackgroundTasks):
                 log_message(f"{exchange_name_short}에 종료할 수량이 없습니다")
             elif long_amount == 0:
                 log_message(f"{exchange_name_long}에 종료할 수량이 없습니다")
->>>>>>> 97afc78ab10aaa47e8936dc0277b87fcd7db87e2
         except Exception as e:
             background_tasks.add_task(log_error_message, traceback.format_exc(), "헷지종료 에러")
             return {"result": "error"}
