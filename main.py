@@ -945,8 +945,7 @@ async def hatikolimitinfo_binance_spot():
     return HI_Binance_Spot.getHatikoInfo()
 
 @ app.get("/hatikolimitinfo_binance_future")
-async def hatikolimitinfo_binance_spot():
-    global HI_Binance_Future
+async def hatikolimitinfo_binance_future():
     return HI_Binance_Future.getHatikoInfo()
 
 @ app.get("/hatikolimitinfo_okx_spot")
