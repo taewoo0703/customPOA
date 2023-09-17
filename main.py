@@ -1044,116 +1044,113 @@ async def add_nMaxLong_binance_spot():
     global HI_Binance_Spot
     old = HI_Binance_Spot.nMaxLong
     new = HI_Binance_Spot.add_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/add_nMaxLong_binance_future")
 async def add_nMaxLong_binance_future():
     global HI_Binance_Future
     old = HI_Binance_Future.nMaxLong
     new = HI_Binance_Future.add_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/add_nMaxLong_bitget_spot")
 async def add_nMaxLong_bitget_spot():
     global HI_Bitget_Spot
     old = HI_Bitget_Spot.nMaxLong
     new = HI_Bitget_Spot.add_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/add_nMaxLong_bitget_future")
 async def add_nMaxLong_bitget_future():
     global HI_Bitget_Future
     old = HI_Bitget_Future.nMaxLong
     new = HI_Bitget_Future.add_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/add_nMaxLong_bybit_spot")
 async def add_nMaxLong_bybit_spot():
     global HI_Bybit_Spot
     old = HI_Bybit_Spot.nMaxLong
     new = HI_Bybit_Spot.add_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/add_nMaxLong_bybit_future")
 async def add_nMaxLong_bybit_future():
     global HI_Bybit_Future
     old = HI_Bybit_Future.nMaxLong
     new = HI_Bybit_Future.add_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/add_nMaxLong_okx_spot")
 async def add_nMaxLong_okx_spot():
     global HI_OKX_Spot
     old = HI_OKX_Spot.nMaxLong
     new = HI_OKX_Spot.add_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/add_nMaxLong_okx_future")
 async def add_nMaxLong_okx_future():
     global HI_OKX_Future
     old = HI_OKX_Future.nMaxLong
     new = HI_OKX_Future.add_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/add_nMaxShort_binance_spot")
 async def add_nMaxShort_binance_spot():
     global HI_Binance_Spot
     old = HI_Binance_Spot.nMaxShort
     new = HI_Binance_Spot.add_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 
 @ app.get("/add_nMaxShort_binance_future")
 async def add_nMaxShort_binance_future():
     global HI_Binance_Future
     old = HI_Binance_Future.nMaxShort
     new = HI_Binance_Future.add_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 
 @ app.get("/add_nMaxShort_bitget_spot")
 async def add_nMaxShort_bitget_spot():
     global HI_Bitget_Spot
     old = HI_Bitget_Spot.nMaxShort
     new = HI_Bitget_Spot.add_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 
 @ app.get("/add_nMaxShort_bitget_future")
 async def add_nMaxShort_bitget_future():
     global HI_Bitget_Future
     old = HI_Bitget_Future.nMaxShort
     new = HI_Bitget_Future.add_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 
 @ app.get("/add_nMaxShort_bybit_spot")
 async def add_nMaxShort_bybit_spot():
     global HI_Bybit_Spot
     old = HI_Bybit_Spot.nMaxShort
     new = HI_Bybit_Spot.add_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 
 @ app.get("/add_nMaxShort_bybit_future")
 async def add_nMaxShort_bybit_future():
     global HI_Bybit_Future
     old = HI_Bybit_Future.nMaxShort
     new = HI_Bybit_Future.add_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 
 @ app.get("/add_nMaxShort_okx_spot")
 async def add_nMaxShort_okx_spot():
     global HI_OKX_Spot
     old = HI_OKX_Spot.nMaxShort
     new = HI_OKX_Spot.add_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 
 @ app.get("/add_nMaxShort_okx_future")
 async def add_nMaxShort_okx_future():
     global HI_OKX_Future
     old = HI_OKX_Future.nMaxShort
     new = HI_OKX_Future.add_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 #endregion add_nMax
-
-
-
 
 #region subtract_nMax
 @ app.get("/subtract_nMaxLong_binance_spot")
@@ -1161,112 +1158,112 @@ async def subtract_nMaxLong_binance_spot():
     global HI_Binance_Spot
     old = HI_Binance_Spot.nMaxLong
     new = HI_Binance_Spot.subtract_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/subtract_nMaxLong_binance_future")
 async def subtract_nMaxLong_binance_future():
     global HI_Binance_Future
     old = HI_Binance_Future.nMaxLong
     new = HI_Binance_Future.subtract_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/subtract_nMaxLong_bitget_spot")
 async def subtract_nMaxLong_bitget_spot():
     global HI_Bitget_Spot
     old = HI_Bitget_Spot.nMaxLong
     new = HI_Bitget_Spot.subtract_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/subtract_nMaxLong_bitget_future")
 async def subtract_nMaxLong_bitget_future():
     global HI_Bitget_Future
     old = HI_Bitget_Future.nMaxLong
     new = HI_Bitget_Future.subtract_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/subtract_nMaxLong_bybit_spot")
 async def subtract_nMaxLong_bybit_spot():
     global HI_Bybit_Spot
     old = HI_Bybit_Spot.nMaxLong
     new = HI_Bybit_Spot.subtract_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/subtract_nMaxLong_bybit_future")
 async def subtract_nMaxLong_bybit_future():
     global HI_Bybit_Future
     old = HI_Bybit_Future.nMaxLong
     new = HI_Bybit_Future.subtract_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/subtract_nMaxLong_okx_spot")
 async def subtract_nMaxLong_okx_spot():
     global HI_OKX_Spot
     old = HI_OKX_Spot.nMaxLong
     new = HI_OKX_Spot.subtract_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/subtract_nMaxLong_okx_future")
 async def subtract_nMaxLong_okx_future():
     global HI_OKX_Future
     old = HI_OKX_Future.nMaxLong
     new = HI_OKX_Future.subtract_nMaxLong()
-    return f"nMaxLong : '{old}' -> '{new}'"
+    return f"nMaxLong : {old} -> {new}"
 
 @ app.get("/subtract_nMaxShort_binance_spot")
 async def subtract_nMaxShort_binance_spot():
     global HI_Binance_Spot
     old = HI_Binance_Spot.nMaxShort
     new = HI_Binance_Spot.subtract_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 
 @ app.get("/subtract_nMaxShort_binance_future")
 async def subtract_nMaxShort_binance_future():
     global HI_Binance_Future
     old = HI_Binance_Future.nMaxShort
     new = HI_Binance_Future.subtract_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 
 @ app.get("/subtract_nMaxShort_bitget_spot")
 async def subtract_nMaxShort_bitget_spot():
     global HI_Bitget_Spot
     old = HI_Bitget_Spot.nMaxShort
     new = HI_Bitget_Spot.subtract_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 
 @ app.get("/subtract_nMaxShort_bitget_future")
 async def subtract_nMaxShort_bitget_future():
     global HI_Bitget_Future
     old = HI_Bitget_Future.nMaxShort
     new = HI_Bitget_Future.subtract_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 
 @ app.get("/subtract_nMaxShort_bybit_spot")
 async def subtract_nMaxShort_bybit_spot():
     global HI_Bybit_Spot
     old = HI_Bybit_Spot.nMaxShort
     new = HI_Bybit_Spot.subtract_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 
 @ app.get("/subtract_nMaxShort_bybit_future")
 async def subtract_nMaxShort_bybit_future():
     global HI_Bybit_Future
     old = HI_Bybit_Future.nMaxShort
     new = HI_Bybit_Future.subtract_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 
 @ app.get("/subtract_nMaxShort_okx_spot")
 async def subtract_nMaxShort_okx_spot():
     global HI_OKX_Spot
     old = HI_OKX_Spot.nMaxShort
     new = HI_OKX_Spot.subtract_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 
 @ app.get("/subtract_nMaxShort_okx_future")
 async def subtract_nMaxShort_okx_future():
     global HI_OKX_Future
     old = HI_OKX_Future.nMaxShort
     new = HI_OKX_Future.subtract_nMaxShort()
-    return f"nMaxShort : '{old}' -> '{new}'"
+    return f"nMaxShort : {old} -> {new}"
 #endregion subtract_nMax
 
 #region 각 거래소별 웹훅 주소 정의
