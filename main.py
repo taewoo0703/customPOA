@@ -1356,7 +1356,7 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                 bot.init_info(order_info)
 
                 # 3. 지정가 Entry 주문
-                if bot.order_info.is_entry:
+                if bot.order_info.is_entry or (bot.order_info.is_spot and bot.order_info.is_buy):
                     ###################################
                     # Entry 매매 코드
                     ###################################
@@ -1462,8 +1462,9 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                     orderID_list.append(order_result["id"])
 
                     # 트뷰에서는 청산 시그널로 오기 때문에 디스코드로 알람 보낼때는 진입으로 전환해줌
-                    order_info.is_entry = True
-                    order_info.is_close = False
+                    if order_info.is_futures:
+                        order_info.is_entry = True
+                        order_info.is_close = False
                     order_info.is_buy = not order_info.is_buy
                     order_info.is_sell = not order_info.is_sell
                     background_tasks.add_task(log, exchange_name, order_result, order_info)
@@ -1526,7 +1527,7 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                     isSendSignalDiscord = True
 
                 # 4. 청산 주문
-                if order_info.is_close:
+                if order_info.is_close or (bot.order_info.is_spot and bot.order_info.is_sell):
                     #############################
                     ## Close 매매코드
                     #############################
