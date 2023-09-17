@@ -613,6 +613,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
     nComplete = 0
     isSettingFinish = False     # 매매전 ccxt 세팅 flag 
     orderID_list = []           # 오더id 리스트
+    isCancelSuccess = False     # 미체결주문 취소성공 여부
     amountCanceled = 0          # 주문 취소한 코인개수(NextCandle 로직에서 사용)
     sideCanceled = ""           # 취소한 주문의 방향("buy" or "sell")
     isSendSignalDiscord = False # 트뷰 시그널이 도착했다는 알람 전송 여부
@@ -814,9 +815,9 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 bot = get_bot(exchange_name, order_info.kis_number)
                 bot.init_info(order_info)
                 symbol = order_info.unified_symbol
-                open_orders = bot.client.fetch_open_orders(symbol)
-                if len(open_orders) > 0:
+                if not isCancelSuccess:
                     bot.client.cancel_all_orders(symbol)
+                    isCancelSuccess = True
 
                 # [Debug] 미체결 주문 취소 후 알람 발생
                 if not isSendSignalDiscord and isCancelSuccess:
@@ -1516,7 +1517,8 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                 bot = get_bot(exchange_name, order_info.kis_number)
                 bot.init_info(order_info)
                 symbol = order_info.unified_symbol
-                if not isCancelSuccess:
+                open_orders = bot.client.fetch_open_orders(symbol)
+                if len(open_orders) > 0:
                     bot.client.cancel_all_orders(symbol)
                     isCancelSuccess = True
 
