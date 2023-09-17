@@ -312,3 +312,172 @@ class Okx:
             )
         except Exception as e:
             raise error.OrderError(e, self.order_info)
+
+
+##############################################################################
+# by PTW
+##############################################################################
+
+    # by PTW
+    # hatiko용 get_amount
+    def get_amount_hatiko(self, symbol, nMaxLong, nMaxShort, entryRate: float=0) -> float:
+        """
+        entryRate : 현물인 경우에만 사용함. entryCash = entryRate * freecash
+        """
+        # 선물 일 때
+        if self.order_info.is_futures:
+            # Long Entry
+            if self.order_info.is_entry and self.order_info.side in ("buy"):
+                total_bal = float(self.client.fetch_balance().get('info').get('totalCrossWalletBalance'))
+                cash = total_bal / 4.0 / nMaxLong     # 총 자본을 4분할 + nMaxLong종목 몰빵
+                cash = cash * 100.0 / 70.0  # 청산당할 MDD를 70%로 설정하기 때문에 100/70을 곱함.
+                result = cash / self.order_info.price
+
+            # Short Entry
+            if self.order_info.is_entry and self.order_info.side in ("sell"):
+                total_bal = float(self.client.fetch_balance().get('info').get('totalCrossWalletBalance'))
+                cash = total_bal / 4.0 / nMaxShort    # 총 자본을 4분할 + nMaxShort종목 몰빵
+                cash = cash * 100.0 / 150.0  # 청산당할 MDD를 150%로 설정하기 때문에 100/150을 곱함.
+                result = cash / self.order_info.price
+
+            # Long Exit & Short Exit
+            if self.order_info.is_close:
+                symbol = self.order_info.unified_symbol
+                free_amount = self.get_futures_position_hatiko(symbol)
+                result = free_amount        # 팔 때는 100% 전량 매도함
+
+        # 현물 일 때
+        if self.order_info.is_spot:
+            # Buy
+            if self.order_info.side in ("buy"):
+                free_quote = self.get_balance_hatiko(self.order_info.quote)
+                cash = free_quote * entryRate
+                result = cash / self.order_info.price
+
+            # Sell
+            if self.order_info.side in ("sell"):
+                free_amount = self.get_balance_hatiko(self.order_info.base)
+                result = free_amount
+
+        return result
+
+    # by PTW
+    # hatiko용 get_balance
+    # "거래할 수량이 없습니다" Error를 발생시키지 않음.
+    # 나머지는 동일
+    def get_balance_hatiko(self, base: str):
+        free_balance_by_base = None
+        if self.order_info.is_entry or (
+            self.order_info.is_spot and (self.order_info.is_buy or self.order_info.is_sell)
+        ):
+            free_balance = self.client.fetch_free_balance()
+            free_balance_by_base = free_balance.get(base)
+
+        # if free_balance_by_base is None or free_balance_by_base == 0:
+        #     raise error.FreeAmountNoneError()
+        return free_balance_by_base
+
+    # by PTW
+    # hatiko용 get_futures_position
+    # "거래할 수량이 없습니다" Error를 발생시키지 않음.
+    # 나머지는 동일
+    def get_futures_position_hatiko(self, symbol=None, all=False):
+        if symbol is None and all:
+            positions = self.client.fetch_balance()["info"]["positions"]
+            positions = [position for position in positions if float(position["positionAmt"]) != 0]
+            return positions
+
+        positions = self.client.fetch_positions([symbol])
+        long_contracts = None
+        short_contracts = None
+        if positions:
+            for position in positions:
+                if position["side"] == "long":
+                    long_contracts = position["contracts"]
+                elif position["side"] == "short":
+                    short_contracts = position["contracts"]
+
+            if self.order_info.is_close and self.order_info.is_buy:
+                # if not short_contracts:
+                #     raise error.ShortPositionNoneError()
+                # else:
+                return short_contracts
+            elif self.order_info.is_close and self.order_info.is_sell:
+                # if not long_contracts:
+                #     raise error.LongPositionNoneError()
+                # else:
+                return long_contracts
+        else:
+            # raise error.PositionNoneError()
+            return 0
+        
+    # limit 오더 함수
+    # market_order 함수를 최대한 활용함
+    def limit_order(self, order_info: MarketOrder, amount: float, price: float):   
+        from exchange.pexchange import retry
+
+        symbol = order_info.unified_symbol  # self.parse_symbol(order_info.base, order_info.quote)
+        params = {"tgtCcy": "base_ccy"}
+
+        try:
+            return retry(
+                self.client.create_order,
+                symbol,
+                "limit",
+                order_info.side,
+                amount,
+                price,
+                params,
+                order_info=order_info,
+                max_attempts=5,
+                delay=0.1,
+                instance=self,
+            )
+        except Exception as e:
+            raise error.OrderError(e, self.order_info)
+
+    # limit 청산 함수
+    # market_close 함수를 최대한 활용함
+    def limit_close(self, order_info: MarketOrder, amount: float, price: float):
+        from exchange.pexchange import retry
+
+        symbol = self.order_info.unified_symbol
+
+        if self.position_mode == "one-way":
+            if self.order_info.margin_mode is None or self.order_info.margin_mode == "isolated":
+                params = {"reduceOnly": True, "tdMode": "isolated"}
+            elif self.order_info.margin_mode == "cross":
+                params = {"reduceOnly": True, "tdMode": "cross"}
+
+        elif self.position_mode == "hedge":
+            if order_info.is_futures and order_info.side == "buy":
+                if order_info.is_entry:
+                    pos_side = "long"
+                elif order_info.is_close:
+                    pos_side = "short"
+            elif order_info.is_futures and order_info.side == "sell":
+                if order_info.is_entry:
+                    pos_side = "short"
+                elif order_info.is_close:
+                    pos_side = "long"
+            if self.order_info.margin_mode is None or self.order_info.margin_mode == "isolated":
+                params = {"posSide": pos_side, "tdMode": "isolated"}
+            elif self.order_info.margin_mode == "cross":
+                params = {"posSide": pos_side, "tdMode": "cross"}
+
+        try:
+            return retry(
+                self.client.create_order,
+                symbol,
+                "limit",
+                order_info.side,
+                abs(amount),
+                price,
+                params,
+                order_info=order_info,
+                max_attempts=5,
+                delay=0.1,
+                instance=self,
+            )
+        except Exception as e:
+            raise error.OrderError(e, self.order_info)

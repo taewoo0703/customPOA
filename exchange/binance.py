@@ -361,28 +361,44 @@ class Binance:
 
     # by PTW
     # hatiko용 get_amount
-    def get_amount_hatiko(self, symbol, nMaxLong, nMaxShort) -> float:
-        # Long Entry
-        if self.order_info.is_entry and self.order_info.side in ("buy"):
-            total_bal = float(self.client.fetch_balance().get('info').get('totalCrossWalletBalance'))
-            cash = total_bal / 4.0 / nMaxLong     # 총 자본을 4분할 + nMaxLong종목 몰빵
-            cash = cash * 100.0 / 70.0  # 청산당할 MDD를 70%로 설정하기 때문에 100/70을 곱함.
-            current_price = self.get_price(symbol)
-            result = cash / current_price
-            
-        # Short Entry
-        if self.order_info.is_entry and self.order_info.side in ("sell"):
-            total_bal = float(self.client.fetch_balance().get('info').get('totalCrossWalletBalance'))
-            cash = total_bal / 4.0 / nMaxShort    # 총 자본을 4분할 + nMaxShort종목 몰빵
-            cash = cash * 100.0 / 150.0  # 청산당할 MDD를 150%로 설정하기 때문에 100/150을 곱함.
-            current_price = self.get_price(symbol)
-            result = cash / current_price
+    def get_amount_hatiko(self, symbol, nMaxLong, nMaxShort, entryRate: float=0) -> float:
+        """
+        entryRate : 현물인 경우에만 사용함. entryCash = entryRate * freecash
+        """
+        # 선물 일 때
+        if self.order_info.is_futures:
+            # Long Entry
+            if self.order_info.is_entry and self.order_info.side in ("buy"):
+                total_bal = float(self.client.fetch_balance().get('info').get('totalCrossWalletBalance'))
+                cash = total_bal / 4.0 / nMaxLong     # 총 자본을 4분할 + nMaxLong종목 몰빵
+                cash = cash * 100.0 / 70.0  # 청산당할 MDD를 70%로 설정하기 때문에 100/70을 곱함.
+                result = cash / self.order_info.price
+                
+            # Short Entry
+            if self.order_info.is_entry and self.order_info.side in ("sell"):
+                total_bal = float(self.client.fetch_balance().get('info').get('totalCrossWalletBalance'))
+                cash = total_bal / 4.0 / nMaxShort    # 총 자본을 4분할 + nMaxShort종목 몰빵
+                cash = cash * 100.0 / 150.0  # 청산당할 MDD를 150%로 설정하기 때문에 100/150을 곱함.
+                result = cash / self.order_info.price
 
-        # Long Exit & Short Exit
-        if self.order_info.is_close:
-            symbol = self.order_info.unified_symbol
-            free_amount = self.get_futures_position_hatiko(symbol) if self.order_info.is_crypto and self.order_info.is_futures else self.get_balance_hatiko(self.order_info.base)
-            result = free_amount        # 팔 때는 100% 전량 매도함
+            # Long Exit & Short Exit
+            if self.order_info.is_close:
+                symbol = self.order_info.unified_symbol
+                free_amount = self.get_futures_position_hatiko(symbol)
+                result = free_amount        # 팔 때는 100% 전량 매도함
+        
+        # 현물 일 때
+        if self.order_info.is_spot:
+            # Buy
+            if self.order_info.side in ("buy"):
+                free_quote = self.get_balance_hatiko(self.order_info.quote)
+                cash = free_quote * entryRate
+                result = cash / self.order_info.price
+            
+            # Sell
+            if self.order_info.side in ("sell"):                
+                free_amount = self.get_balance_hatiko(self.order_info.base)
+                result = free_amount
 
         return result
     
@@ -523,71 +539,3 @@ class Binance:
             )
         except Exception as e:
             raise error.OrderError(e, self.order_info)
-
-
-
-    # # Hatiko용 오더
-    # # 기존의 오더 함수를 최대한 재활용하여 만듬
-    # def haitko_entry(self, order_info: MarketOrder, nMaxLong: int, nMaxShort: int):
-    #     """
-    #     - param
-    #     order_info : 유효성 검증이 끝난 order_info
-    #     nMaxLong : 진입할 Long 종목 개수
-    #     nMaxShort : 진입할 Short 종목 개수
-        
-    #     - return
-    #     orderID_list : 오더ID를 담은 리스트, 추 후 미체결주문 취소 시 필요
-    #     """
-    #     # 초기 세팅
-    #     symbol = order_info.unified_symbol
-    #     entry_price = order_info.price  # 진입 가격은 order_info로 넘겨받음
-    #     if order_info.leverage is not None: 
-    #         self.client.set_leverage(order_info.leverage, symbol)
-
-    #     # 진입수량 설정
-    #     total_amount = self.get_amount_hatiko(symbol, nMaxLong, nMaxShort)
-    #     market = self.client.market(symbol)
-    #     max_amount = market["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수  # float
-    #     min_amount = market["limits"]["amount"]["min"] # 지정가 주문 최소 코인개수  # float
-    #     # self.markets = self.client.load_markets()
-    #     # max_amount = self.markets[symbol]["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수
-    #     # min_amount = self.markets[symbol]["limits"]["amount"]["min"]
-
-    #     # Set nGoal
-    #     entry_amount_list = []
-    #     if (total_amount % max_amount < min_amount):
-    #         nGoal = total_amount // max_amount
-    #         for i in range(int(nGoal)):
-    #             entry_amount_list.append(max_amount)
-    #     else:
-    #         nGoal = total_amount // max_amount + 1
-    #         for i in range(int(nGoal - 1)):
-    #             entry_amount_list.append(max_amount)
-    #         remain_amount = float(self.client.amount_to_precision(symbol, total_amount % max_amount))
-    #         entry_amount_list.append(remain_amount)
-        
-
-    #     # 주문 생성
-    #     orderID_list = []
-    #     for i in range(int(nGoal)):
-    #         entry_amount = entry_amount_list[nComplete]
-    #         order_result = self.limit_order(order_info, entry_amount, entry_price)
-    #         orderID_list.append(order_result["id"])
-    #         background_tasks.add_task(log, exchange_name, result, order_info)
-
-
-
-            
-    #         result = self.client.create_order(symbol, "limit", side, abs(entry_amount), entry_price)
-    #         orderID_list.append(result['id'])
-    #         nComplete += 1
-    #         # 디스코드 로그생성
-    #         background_tasks.add_task(log, exchange_name, result, order_info)
-        
-
-
-
-
-    #     # 주문
-    #     self.limit_order(order_info, amount, price)
-

@@ -347,3 +347,207 @@ class ArbiData(BaseModel):
             if key in ("exchange_long", "exchange_short" "base", "quote", "hedge"):
                 values[key] = value.upper()
         return values
+
+class HatikoOrder(OrderBase):
+    type: Literal["market", "limit"] = "limit"
+    nMaxLong: int = 100
+    nMaxShort: int = 100
+    nIgnoreLong: int = 0
+    nIgnoreShort: int = 0
+
+
+
+class HatikoInfo:
+    # [static] order_name 리스트
+    nearSignal_list = ["nearLong1", "nearLong2", "nearLong3", "nearLong4",
+                       "nearShort1", "nearShort2", "nearShort3", "nearShort4"]
+    entrySignal_list = ["Long1", "Long2", "Long3", "Long4",
+                        "Short1", "Short2", "Short3", "Short4"]
+    nextSignal_list = ["NextCandle_L1", "NextCandle_L2", "NextCandle_L3", "NextCandle_L4",
+                       "NextCandle_S1", "NextCandle_S2", "NextCandle_S3", "NextCandle_S4"]
+    closeSignal_list = ["close Longs on open", "close Shorts on open",
+                        "TakeProfit_nearL1", "TakeProfit_nearS1"]
+    ignoreSignal_list = ["TakeProfit_nearL2", "TakeProfit_nearL3", "TakeProfit_nearL4",
+                         "TakeProfit_nearS2", "TakeProfit_nearS3", "TakeProfit_nearS4",
+                         "TakeProfit_L1", "TakeProfit_L2", "TakeProfit_L3", "TakeProfit_L4",
+                         "TakeProfit_L1", "TakeProfit_L2", "TakeProfit_L3", "TakeProfit_L4"]
+    
+    def __init__(self):
+        # 지정가 Hatiko용 near시그널 딕셔너리
+        # base(종목명) : orderID_list(오더id 리스트)
+        self.nearLong1_dic = {}
+        self.nearLong2_dic = {}
+        self.nearLong3_dic = {}
+        self.nearLong4_dic = {}
+        self.nearShort1_dic = {}
+        self.nearShort2_dic = {}
+        self.nearShort3_dic = {}
+        self.nearShort4_dic = {}
+
+        # 지정가 Hatiko용 entry시그널 리스트
+        self.Long1_list = []
+        self.Long2_list = []
+        self.Long3_list = []
+        self.Long4_list = []
+        self.Short1_list = []
+        self.Short2_list = []
+        self.Short3_list = []
+        self.Short4_list = []
+
+        # 지정가 Hatiko용 무시할 시그널 리스트
+        self.nearLong1_ignore_list = []
+        self.nearLong2_ignore_list = []
+        self.nearLong3_ignore_list = []
+        self.nearLong4_ignore_list = []
+        self.nearShort1_ignore_list = []
+        self.nearShort2_ignore_list = []
+        self.nearShort3_ignore_list = []
+        self.nearShort4_ignore_list = []        
+    
+    def matchNearDic(self, order_name):
+        """
+        order_name에 따라 해당하는 near딕셔너리를 반환
+        예시) input : "NextCandle_L1" -> output : "nearLong1_dic"
+        """
+        if order_name in ["nearLong1", "Long1", "NextCandle_L1"]:
+            return self.nearLong1_dic
+        if order_name in ["nearLong2", "Long2", "NextCandle_L2"]:
+            return self.nearLong2_dic
+        if order_name in ["nearLong3", "Long3", "NextCandle_L3"]:
+            return self.nearLong3_dic
+        if order_name in ["nearLong4", "Long4", "NextCandle_L4"]:
+            return self.nearLong4_dic
+        if order_name in ["nearShort1", "Short1", "NextCandle_S1"]:
+            return self.nearShort1_dic
+        if order_name in ["nearShort2", "Short2", "NextCandle_S2"]:
+            return self.nearShort2_dic
+        if order_name in ["nearShort3", "Short3", "NextCandle_S3"]:
+            return self.nearShort3_dic
+        if order_name in ["nearShort4", "Short4", "NextCandle_S4"]:
+            return self.nearShort4_dic
+        
+    def matchEntryList(self, order_name):
+        """
+        order_name에 따라 해당하는 entry리스트를 반환
+        예시) input : "NextCandle_L1" -> output : "Long1"
+        """
+        if order_name in ["nearLong1", "Long1", "NextCandle_L1"]:
+            return self.Long1_list
+        if order_name in ["nearLong2", "Long2", "NextCandle_L2"]:
+            return self.Long2_list
+        if order_name in ["nearLong3", "Long3", "NextCandle_L3"]:
+            return self.Long3_list
+        if order_name in ["nearLong4", "Long4", "NextCandle_L4"]:
+            return self.Long4_list
+        if order_name in ["nearShort1", "Short1", "NextCandle_S1"]:
+            return self.Short1_list
+        if order_name in ["nearShort2", "Short2", "NextCandle_S2"]:
+            return self.Short2_list
+        if order_name in ["nearShort3", "Short3", "NextCandle_S3"]:
+            return self.Short3_list
+        if order_name in ["nearShort4", "Short4", "NextCandle_S4"]:
+            return self.Short4_list
+        
+    def matchNearIgnoreList(self, order_name):
+        """
+        order_name에 따라 해당하는 near_ignore리스트를 반환
+        예시) input : "NextCandle_L1" -> output : "nearLong1_ignore_list"
+        """
+        if order_name in ["nearLong1", "Long1", "NextCandle_L1"]:
+            return self.nearLong1_ignore_list
+        if order_name in ["nearLong2", "Long2", "NextCandle_L2"]:
+            return self.nearLong2_ignore_list
+        if order_name in ["nearLong3", "Long3", "NextCandle_L3"]:
+            return self.nearLong3_ignore_list
+        if order_name in ["nearLong4", "Long4", "NextCandle_L4"]:
+            return self.nearLong4_ignore_list
+        if order_name in ["nearShort1", "Short1", "NextCandle_S1"]:
+            return self.nearShort1_ignore_list
+        if order_name in ["nearShort2", "Short2", "NextCandle_S2"]:
+            return self.nearShort2_ignore_list
+        if order_name in ["nearShort3", "Short3", "NextCandle_S3"]:
+            return self.nearShort3_ignore_list
+        if order_name in ["nearShort4", "Short4", "NextCandle_S4"]:
+            return self.nearShort4_ignore_list
+    
+    def getHatikoInfo(self):
+            res = {
+            "nearLong1_dic"  : str(list(self.nearLong1_dic.keys())),
+            "nearLong2_dic"  : str(list(self.nearLong2_dic.keys())),
+            "nearLong3_dic"  : str(list(self.nearLong3_dic.keys())),
+            "nearLong4_dic"  : str(list(self.nearLong4_dic.keys())),
+            "nearShort1_dic" : str(list(self.nearShort1_dic.keys())),
+            "nearShort2_dic" : str(list(self.nearShort2_dic.keys())),
+            "nearShort3_dic" : str(list(self.nearShort3_dic.keys())),
+            "nearShort4_dic" : str(list(self.nearShort4_dic.keys())),
+            "Long1_list"  : str(self.Long1_list),
+            "Long2_list"  : str(self.Long2_list),
+            "Long3_list"  : str(self.Long3_list),
+            "Long4_list"  : str(self.Long4_list),
+            "Short1_list" : str(self.Short1_list),
+            "Short2_list" : str(self.Short2_list),
+            "Short3_list" : str(self.Short3_list),
+            "Short4_list" : str(self.Short4_list),
+            "nearLong1_ignore_list"  : str(self.nearLong1_ignore_list),
+            "nearLong2_ignore_list"  : str(self.nearLong2_ignore_list),
+            "nearLong3_ignore_list"  : str(self.nearLong3_ignore_list),
+            "nearLong4_ignore_list"  : str(self.nearLong4_ignore_list),
+            "nearShort1_ignore_list" : str(self.nearShort1_ignore_list),
+            "nearShort2_ignore_list" : str(self.nearShort2_ignore_list),
+            "nearShort3_ignore_list" : str(self.nearShort3_ignore_list),
+            "nearShort4_ignore_list" : str(self.nearShort4_ignore_list),
+            }
+
+            return res
+
+    def resetHatikoInfo(self):
+        # 지정가 Hatiko용 near시그널 딕셔너리
+        # base(종목명) : orderID_list(오더id 리스트)
+        self.nearLong1_dic = {}
+        self.nearLong2_dic = {}
+        self.nearLong3_dic = {}
+        self.nearLong4_dic = {}
+        self.nearShort1_dic = {}
+        self.nearShort2_dic = {}
+        self.nearShort3_dic = {}
+        self.nearShort4_dic = {}
+
+        # 지정가 Hatiko용 entry시그널 리스트
+        self.Long1_list = []
+        self.Long2_list = []
+        self.Long3_list = []
+        self.Long4_list = []
+        self.Short1_list = []
+        self.Short2_list = []
+        self.Short3_list = []
+        self.Short4_list = []
+
+        # 지정가 Hatiko용 무시할 시그널 리스트
+        self.nearLong1_ignore_list = []
+        self.nearLong2_ignore_list = []
+        self.nearLong3_ignore_list = []
+        self.nearLong4_ignore_list = []
+        self.nearShort1_ignore_list = []
+        self.nearShort2_ignore_list = []
+        self.nearShort3_ignore_list = []
+        self.nearShort4_ignore_list = []
+
+        return "Reset HatikoInfo Complete!!!"
+    
+    def countNearSignal(self) -> int:
+        cnt = len(self.nearLong1_dic) + len(self.nearLong2_dic) + len(self.nearLong3_dic) + len(self.nearLong4_dic)
+        return cnt
+
+    def calcEntryRate(self, nMax: int, safetyMarginPercent: float=0) -> float:
+        """
+        nMax : nMaxLong
+        safetyMarginPercent : Total자본금 * safetyMarginPercent/100 만큼은 안전마진으로 두고 쓰지 않는다
+
+        진입비율 = entryCash / FreeCash
+        return 진입비율
+        """
+        nNear = self.countNearSignal()
+        nEnvelope = 4
+        availableCashRate = 1 - safetyMarginPercent / 100
+        entryRate = availableCashRate / (nEnvelope * nMax - nNear * availableCashRate)
+        return entryRate
