@@ -1047,6 +1047,18 @@ async def hatikolimit_binance_spot(order_info: MarketOrder, background_tasks: Ba
     nIgnoreShort = 0
     hatikolimitBase_test(order_info, background_tasks, HI_Binance_Spot, nMaxLong, nMaxShort, nIgnoreLong, nIgnoreShort)
 
+@ app.post("/hatikolimit_binance_future")
+@ app.post("/")
+async def hatikolimit_binance_future(order_info: MarketOrder, background_tasks: BackgroundTasks):
+    global HI_Binance_Future
+    nMaxLong = 1
+    nMaxShort = 1
+    nIgnoreLong = 0
+    nIgnoreShort = 0
+    hatikolimitBase_test(order_info, background_tasks, HI_Binance_Future, nMaxLong, nMaxShort, nIgnoreLong, nIgnoreShort)
+
+
+
 #endregion 각 거래소별 웹훅 주소 정의
 
 
