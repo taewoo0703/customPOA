@@ -373,6 +373,10 @@ class HatikoInfo:
                          "TakeProfit_L1", "TakeProfit_L2", "TakeProfit_L3", "TakeProfit_L4"]
     
     def __init__(self):
+        # 최대 종목 개수
+        self.nMaxLong = 2
+        self.nMaxShort = 1
+
         # 지정가 Hatiko용 near시그널 딕셔너리
         # base(종목명) : orderID_list(오더id 리스트)
         self.nearLong1_dic = {}
@@ -470,37 +474,40 @@ class HatikoInfo:
         if order_name in ["nearShort4", "Short4", "NextCandle_S4"]:
             return self.nearShort4_ignore_list
     
+    #region request 호출용 함수
     def getHatikoInfo(self):
             res = {
-            "nearLong1_dic"  : str(list(self.nearLong1_dic.keys())),
-            "nearLong2_dic"  : str(list(self.nearLong2_dic.keys())),
-            "nearLong3_dic"  : str(list(self.nearLong3_dic.keys())),
-            "nearLong4_dic"  : str(list(self.nearLong4_dic.keys())),
-            "nearShort1_dic" : str(list(self.nearShort1_dic.keys())),
-            "nearShort2_dic" : str(list(self.nearShort2_dic.keys())),
-            "nearShort3_dic" : str(list(self.nearShort3_dic.keys())),
-            "nearShort4_dic" : str(list(self.nearShort4_dic.keys())),
-            "Long1_list"  : str(self.Long1_list),
-            "Long2_list"  : str(self.Long2_list),
-            "Long3_list"  : str(self.Long3_list),
-            "Long4_list"  : str(self.Long4_list),
-            "Short1_list" : str(self.Short1_list),
-            "Short2_list" : str(self.Short2_list),
-            "Short3_list" : str(self.Short3_list),
-            "Short4_list" : str(self.Short4_list),
-            "nearLong1_ignore_list"  : str(self.nearLong1_ignore_list),
-            "nearLong2_ignore_list"  : str(self.nearLong2_ignore_list),
-            "nearLong3_ignore_list"  : str(self.nearLong3_ignore_list),
-            "nearLong4_ignore_list"  : str(self.nearLong4_ignore_list),
-            "nearShort1_ignore_list" : str(self.nearShort1_ignore_list),
-            "nearShort2_ignore_list" : str(self.nearShort2_ignore_list),
-            "nearShort3_ignore_list" : str(self.nearShort3_ignore_list),
-            "nearShort4_ignore_list" : str(self.nearShort4_ignore_list),
-            }
+                "nMaxLong" : str(self.nMaxLong),
+                "nMaxShort" : str(self.nMaxShort),
+                "nearLong1_dic"  : str(list(self.nearLong1_dic.keys())),
+                "nearLong2_dic"  : str(list(self.nearLong2_dic.keys())),
+                "nearLong3_dic"  : str(list(self.nearLong3_dic.keys())),
+                "nearLong4_dic"  : str(list(self.nearLong4_dic.keys())),
+                "nearShort1_dic" : str(list(self.nearShort1_dic.keys())),
+                "nearShort2_dic" : str(list(self.nearShort2_dic.keys())),
+                "nearShort3_dic" : str(list(self.nearShort3_dic.keys())),
+                "nearShort4_dic" : str(list(self.nearShort4_dic.keys())),
+                "Long1_list"  : str(self.Long1_list),
+                "Long2_list"  : str(self.Long2_list),
+                "Long3_list"  : str(self.Long3_list),
+                "Long4_list"  : str(self.Long4_list),
+                "Short1_list" : str(self.Short1_list),
+                "Short2_list" : str(self.Short2_list),
+                "Short3_list" : str(self.Short3_list),
+                "Short4_list" : str(self.Short4_list),
+                "nearLong1_ignore_list"  : str(self.nearLong1_ignore_list),
+                "nearLong2_ignore_list"  : str(self.nearLong2_ignore_list),
+                "nearLong3_ignore_list"  : str(self.nearLong3_ignore_list),
+                "nearLong4_ignore_list"  : str(self.nearLong4_ignore_list),
+                "nearShort1_ignore_list" : str(self.nearShort1_ignore_list),
+                "nearShort2_ignore_list" : str(self.nearShort2_ignore_list),
+                "nearShort3_ignore_list" : str(self.nearShort3_ignore_list),
+                "nearShort4_ignore_list" : str(self.nearShort4_ignore_list),
+                }
 
             return res
 
-    def resetHatikoInfo(self):
+    def resetHatikoInfo(self):        
         # 지정가 Hatiko용 near시그널 딕셔너리
         # base(종목명) : orderID_list(오더id 리스트)
         self.nearLong1_dic = {}
@@ -534,6 +541,24 @@ class HatikoInfo:
 
         return "Reset HatikoInfo Complete!!!"
     
+    def add_nMaxLong(self):
+        self.nMaxLong += 1
+        return self.nMaxLong
+    
+    def add_nMaxShort(self):
+        self.nMaxShort += 1
+        return self.nMaxShort
+
+    def subtract_nMaxLong(self):
+        self.nMaxLong -= 1
+        return self.nMaxLong
+
+    def subtract_nMaxShort(self):
+        self.nMaxShort -= 1
+        return self.nMaxShort
+
+    #endregion request 호출용 함수
+
     def countNearSignal(self) -> int:
         cnt = len(self.nearLong1_dic) + len(self.nearLong2_dic) + len(self.nearLong3_dic) + len(self.nearLong4_dic)
         return cnt

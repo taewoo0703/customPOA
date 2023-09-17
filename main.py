@@ -939,37 +939,39 @@ HI_Bybit_Spot = HatikoInfo()
 HI_Bybit_Future = HatikoInfo()
 #endregion 각 거래소별 HatikoInfo
 
-#region Hatiko Limit 관련 메모리 모니터
-@ app.get("/hatikolimitinfo_binance_spot")
-async def hatikolimitinfo_binance_spot():
+#region HatikoInfo 관련 메모리 모니터
+@ app.get("/hatikoinfo_binance_spot")
+async def hatikoinfo_binance_spot():
+    global HI_Binance_Spot
     return HI_Binance_Spot.getHatikoInfo()
 
-@ app.get("/hatikolimitinfo_binance_future")
-async def hatikolimitinfo_binance_future():
+@ app.get("/hatikoinfo_binance_future")
+async def hatikoinfo_binance_future():
+    global HI_Binance_Future
     return HI_Binance_Future.getHatikoInfo()
 
-@ app.get("/hatikolimitinfo_okx_spot")
-async def hatikolimitinfo_okx_spot():
+@ app.get("/hatikoinfo_okx_spot")
+async def hatikoinfo_okx_spot():
     return HI_OKX_Spot.getHatikoInfo()
 
-@ app.get("/hatikolimitinfo_okx_future")
-async def hatikolimitinfo_okx_future():
+@ app.get("/hatikoinfo_okx_future")
+async def hatikoinfo_okx_future():
     return HI_OKX_Future.getHatikoInfo()
 
-@ app.get("/hatikolimitinfo_bybit_spot")
-async def hatikolimitinfo_bybit_spot():
+@ app.get("/hatikoinfo_bybit_spot")
+async def hatikoinfo_bybit_spot():
     return HI_Bybit_Spot.getHatikoInfo()
 
-@ app.get("/hatikolimitinfo_bybit_future")
-async def hatikolimitinfo_bybit_future():
+@ app.get("/hatikoinfo_bybit_future")
+async def hatikoinfo_bybit_future():
     return HI_Bybit_Future.getHatikoInfo()
 
-@ app.get("/hatikolimitinfo_Bitget_spot")
-async def hatikolimitinfo_bitget_spot():
+@ app.get("/hatikoinfo_Bitget_spot")
+async def hatikoinfo_bitget_spot():
     return HI_Bitget_Spot.getHatikoInfo()
 
-@ app.get("/hatikolimitinfo_bitget_future")
-async def hatikolimitinfo_bitget_future():
+@ app.get("/hatikoinfo_bitget_future")
+async def hatikoinfo_bitget_future():
     return HI_Bitget_Future.getHatikoInfo()
 #endregion Hatiko Limit 관련 메모리 모니터
 
@@ -1036,33 +1038,196 @@ async def reset_hatikoinfo_okx_future():
     return "Reset HatikoInfo Complete!!!"
 #endregion HatikoInfo 리셋
 
+#region add_nMax
+@ app.get("/add_nMaxLong_binance_spot")
+async def add_nMaxLong_binance_spot():
+    global HI_Binance_Spot
+    return str(HI_Binance_Spot.add_nMaxLong())
+
+@ app.get("/add_nMaxLong_binance_future")
+async def add_nMaxLong_binance_future():
+    global HI_Binance_Future
+    return str(HI_Binance_Future.add_nMaxLong())
+
+@ app.get("/add_nMaxLong_bitget_spot")
+async def add_nMaxLong_bitget_spot():
+    global HI_Bitget_Spot
+    return str(HI_Bitget_Spot.add_nMaxLong())
+
+@ app.get("/add_nMaxLong_bitget_future")
+async def add_nMaxLong_bitget_future():
+    global HI_Bitget_Future
+    return str(HI_Bitget_Future.add_nMaxLong())
+
+@ app.get("/add_nMaxLong_bybit_spot")
+async def add_nMaxLong_bybit_spot():
+    global HI_Bybit_Spot
+    return str(HI_Bybit_Spot.add_nMaxLong())
+
+@ app.get("/add_nMaxLong_bybit_future")
+async def add_nMaxLong_bybit_future():
+    global HI_Bybit_Future
+    return str(HI_Bybit_Future.add_nMaxLong())
+
+@ app.get("/add_nMaxLong_okx_spot")
+async def add_nMaxLong_okx_spot():
+    global HI_OKX_Spot
+    return str(HI_OKX_Spot.add_nMaxLong())
+
+@ app.get("/add_nMaxLong_okx_future")
+async def add_nMaxLong_okx_future():
+    global HI_OKX_Future
+    return str(HI_OKX_Future.add_nMaxLong())
+
+@ app.get("/add_nMaxShort_binance_spot")
+async def add_nMaxShort_binance_spot():
+    global HI_Binance_Spot
+    return str(HI_Binance_Spot.add_nMaxShort())
+
+@ app.get("/add_nMaxShort_binance_future")
+async def add_nMaxShort_binance_future():
+    global HI_Binance_Future
+    return str(HI_Binance_Future.add_nMaxShort())
+
+@ app.get("/add_nMaxShort_bitget_spot")
+async def add_nMaxShort_bitget_spot():
+    global HI_Bitget_Spot
+    return str(HI_Bitget_Spot.add_nMaxShort())
+
+@ app.get("/add_nMaxShort_bitget_future")
+async def add_nMaxShort_bitget_future():
+    global HI_Bitget_Future
+    return str(HI_Bitget_Future.add_nMaxShort())
+
+@ app.get("/add_nMaxShort_bybit_spot")
+async def add_nMaxShort_bybit_spot():
+    global HI_Bybit_Spot
+    return str(HI_Bybit_Spot.add_nMaxShort())
+
+@ app.get("/add_nMaxShort_bybit_future")
+async def add_nMaxShort_bybit_future():
+    global HI_Bybit_Future
+    return str(HI_Bybit_Future.add_nMaxShort())
+
+@ app.get("/add_nMaxShort_okx_spot")
+async def add_nMaxShort_okx_spot():
+    global HI_OKX_Spot
+    return str(HI_OKX_Spot.add_nMaxShort())
+
+@ app.get("/add_nMaxShort_okx_future")
+async def add_nMaxShort_okx_future():
+    global HI_OKX_Future
+    return str(HI_OKX_Future.add_nMaxShort())
+#endregion add_nMax
+
+
+
+
+#region subtract_nMax
+@ app.get("/subtract_nMaxLong_binance_spot")
+async def subtract_nMaxLong_binance_spot():
+    global HI_Binance_Spot
+    return str(HI_Binance_Spot.subtract_nMaxLong())
+
+@ app.get("/subtract_nMaxLong_binance_future")
+async def subtract_nMaxLong_binance_future():
+    global HI_Binance_Future
+    return str(HI_Binance_Future.subtract_nMaxLong())
+
+@ app.get("/subtract_nMaxLong_bitget_spot")
+async def subtract_nMaxLong_bitget_spot():
+    global HI_Bitget_Spot
+    return str(HI_Bitget_Spot.subtract_nMaxLong())
+
+@ app.get("/subtract_nMaxLong_bitget_future")
+async def subtract_nMaxLong_bitget_future():
+    global HI_Bitget_Future
+    return str(HI_Bitget_Future.subtract_nMaxLong())
+
+@ app.get("/subtract_nMaxLong_bybit_spot")
+async def subtract_nMaxLong_bybit_spot():
+    global HI_Bybit_Spot
+    return str(HI_Bybit_Spot.subtract_nMaxLong())
+
+@ app.get("/subtract_nMaxLong_bybit_future")
+async def subtract_nMaxLong_bybit_future():
+    global HI_Bybit_Future
+    return str(HI_Bybit_Future.subtract_nMaxLong())
+
+@ app.get("/subtract_nMaxLong_okx_spot")
+async def subtract_nMaxLong_okx_spot():
+    global HI_OKX_Spot
+    return str(HI_OKX_Spot.subtract_nMaxLong())
+
+@ app.get("/subtract_nMaxLong_okx_future")
+async def subtract_nMaxLong_okx_future():
+    global HI_OKX_Future
+    return str(HI_OKX_Future.subtract_nMaxLong())
+
+@ app.get("/subtract_nMaxShort_binance_spot")
+async def subtract_nMaxShort_binance_spot():
+    global HI_Binance_Spot
+    return str(HI_Binance_Spot.subtract_nMaxShort())
+
+@ app.get("/subtract_nMaxShort_binance_future")
+async def subtract_nMaxShort_binance_future():
+    global HI_Binance_Future
+    return str(HI_Binance_Future.subtract_nMaxShort())
+
+@ app.get("/subtract_nMaxShort_bitget_spot")
+async def subtract_nMaxShort_bitget_spot():
+    global HI_Bitget_Spot
+    return str(HI_Bitget_Spot.subtract_nMaxShort())
+
+@ app.get("/subtract_nMaxShort_bitget_future")
+async def subtract_nMaxShort_bitget_future():
+    global HI_Bitget_Future
+    return str(HI_Bitget_Future.subtract_nMaxShort())
+
+@ app.get("/subtract_nMaxShort_bybit_spot")
+async def subtract_nMaxShort_bybit_spot():
+    global HI_Bybit_Spot
+    return str(HI_Bybit_Spot.subtract_nMaxShort())
+
+@ app.get("/subtract_nMaxShort_bybit_future")
+async def subtract_nMaxShort_bybit_future():
+    global HI_Bybit_Future
+    return str(HI_Bybit_Future.subtract_nMaxShort())
+
+@ app.get("/subtract_nMaxShort_okx_spot")
+async def subtract_nMaxShort_okx_spot():
+    global HI_OKX_Spot
+    return str(HI_OKX_Spot.subtract_nMaxShort())
+
+@ app.get("/subtract_nMaxShort_okx_future")
+async def subtract_nMaxShort_okx_future():
+    global HI_OKX_Future
+    return str(HI_OKX_Future.subtract_nMaxShort())
+#endregion subtract_nMax
+
 #region 각 거래소별 웹훅 주소 정의
 @ app.post("/hatikolimit_binance_spot")
 @ app.post("/")
 async def hatikolimit_binance_spot(order_info: MarketOrder, background_tasks: BackgroundTasks):
     global HI_Binance_Spot
-    nMaxLong = 1
-    nMaxShort = 1
     nIgnoreLong = 0
     nIgnoreShort = 0
-    hatikolimitBase_test(order_info, background_tasks, HI_Binance_Spot, nMaxLong, nMaxShort, nIgnoreLong, nIgnoreShort)
+    hatikolimitBase_test(order_info, background_tasks, HI_Binance_Spot, nIgnoreLong, nIgnoreShort)
 
 @ app.post("/hatikolimit_binance_future")
 @ app.post("/")
 async def hatikolimit_binance_future(order_info: MarketOrder, background_tasks: BackgroundTasks):
     global HI_Binance_Future
-    nMaxLong = 1
-    nMaxShort = 1
     nIgnoreLong = 0
     nIgnoreShort = 0
-    hatikolimitBase_test(order_info, background_tasks, HI_Binance_Future, nMaxLong, nMaxShort, nIgnoreLong, nIgnoreShort)
+    hatikolimitBase_test(order_info, background_tasks, HI_Binance_Future, nIgnoreLong, nIgnoreShort)
 
 
 
 #endregion 각 거래소별 웹훅 주소 정의
 
 
-def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTasks, hatikoInfo: HatikoInfo, nMaxLong: int, nMaxShort: int, nIgnoreLong: int, nIgnoreShort: int):
+def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTasks, hatikoInfo: HatikoInfo, nIgnoreLong: int, nIgnoreShort: int):
     """
     지정가 Hatiko 전략
 
@@ -1119,9 +1284,9 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
 
                 # 1. 종목 최대개수 확인
                 near_dic = hatikoInfo.matchNearDic(order_info.order_name)
-                if order_info.side == "buy" and (len(near_dic) >= nMaxLong or order_info.base in near_dic):
+                if order_info.side == "buy" and (len(near_dic) >= hatikoInfo.nMaxLong or order_info.base in near_dic):
                     return {"result" : "ignore"}
-                if order_info.side == "sell" and (len(near_dic) >= nMaxShort or order_info.base in near_dic):
+                if order_info.side == "sell" and (len(near_dic) >= hatikoInfo.nMaxShort or order_info.base in near_dic):
                     return {"result" : "ignore"}
                 
                 # 2. 거래소 객체 생성
@@ -1141,8 +1306,8 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                             bot.set_leverage(order_info.leverage, symbol)
 
                         # 진입수량 설정
-                        entryRate = hatikoInfo.calcEntryRate(nMaxLong, safetyMarginPercent=1) if order_info.is_spot else 0 # entryCash / FreeCash  # 현물에서 사용
-                        total_amount = bot.get_amount_hatiko(symbol, nMaxLong, nMaxShort, entryRate)
+                        entryRate = hatikoInfo.calcEntryRate(hatikoInfo.nMaxLong, safetyMarginPercent=1) if order_info.is_spot else 0 # entryCash / FreeCash  # 현물에서 사용
+                        total_amount = bot.get_amount_hatiko(symbol, hatikoInfo.nMaxLong, hatikoInfo.nMaxShort, entryRate)
                         market = bot.client.market(symbol)
                         max_amount = market["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수  # float
                         min_amount = market["limits"]["amount"]["min"] # 지정가 주문 최소 코인개수  # float
@@ -1190,7 +1355,7 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                     if not isSendSignalDiscord:
                         background_tasks.add_task(log_custom_message, order_info, "ENTRY_SIGNAL")
                         isSendSignalDiscord = True
-            
+
             elif order_info.order_name in HatikoInfo.nextSignal_list:
                 # NextCandle 시그널 처리
                 # 예시) NextCandle_L1 시그널 수신
@@ -1306,7 +1471,7 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                     if not isSettingFinish:
                         # 초기 세팅
                         # total amount를 max_amount로 쪼개기
-                        total_amount = bot.get_amount_hatiko(symbol, nMaxLong, nMaxShort)
+                        total_amount = bot.get_amount_hatiko(symbol, hatikoInfo.nMaxLong, hatikoInfo.nMaxShort)
                         market = bot.client.market(symbol)
                         max_amount = market["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수
                         min_amount = market["limits"]["amount"]["min"] # 지정가 주문 최소 코인개수
@@ -1376,11 +1541,11 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
 
             elif order_info.order_name in HatikoInfo.ignoreSignal_list:
                 return {"result" : "ignore"}
-        
+
             else:
                 background_tasks.add_task(log_custom_message, order_info, "ORDER_NAME_INCORRECT")
                 return {"result" : "ignore"}
-            
+
         except TypeError as e:
             error_msg = get_error(e)
             background_tasks.add_task(log_order_error_message, "\n".join(error_msg), order_info)
