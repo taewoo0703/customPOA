@@ -372,10 +372,10 @@ class HatikoInfo:
                          "TakeProfit_L1", "TakeProfit_L2", "TakeProfit_L3", "TakeProfit_L4",
                          "TakeProfit_L1", "TakeProfit_L2", "TakeProfit_L3", "TakeProfit_L4"]
     
-    def __init__(self):
+    def __init__(self, nMaxLong=2, nMaxShort=1):
         # 최대 종목 개수
-        self.nMaxLong = 2
-        self.nMaxShort = 1
+        self.nMaxLong = nMaxLong
+        self.nMaxShort = nMaxShort
 
         # 지정가 Hatiko용 near시그널 딕셔너리
         # base(종목명) : orderID_list(오더id 리스트)

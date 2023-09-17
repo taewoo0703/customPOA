@@ -929,14 +929,14 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
 
 
 #region 각 거래소별 HatikoInfo
-HI_Binance_Spot = HatikoInfo() 
-HI_Binance_Future = HatikoInfo()
-HI_OKX_Spot = HatikoInfo()
-HI_OKX_Future = HatikoInfo()
-HI_Bitget_Spot = HatikoInfo()
-HI_Bitget_Future = HatikoInfo()
-HI_Bybit_Spot = HatikoInfo()
-HI_Bybit_Future = HatikoInfo()
+HI_Binance_Spot     = HatikoInfo(nMaxLong=2, nMaxShort=1) 
+HI_Binance_Future   = HatikoInfo(nMaxLong=2, nMaxShort=1)
+HI_OKX_Spot         = HatikoInfo(nMaxLong=2, nMaxShort=1)
+HI_OKX_Future       = HatikoInfo(nMaxLong=2, nMaxShort=1)
+HI_Bitget_Spot      = HatikoInfo(nMaxLong=2, nMaxShort=1)
+HI_Bitget_Future    = HatikoInfo(nMaxLong=2, nMaxShort=1)
+HI_Bybit_Spot       = HatikoInfo(nMaxLong=2, nMaxShort=1)
+HI_Bybit_Future     = HatikoInfo(nMaxLong=2, nMaxShort=1)
 #endregion 각 거래소별 HatikoInfo
 
 #region HatikoInfo 관련 메모리 모니터
@@ -1369,6 +1369,7 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                         # 진입수량 설정
                         entryRate = hatikoInfo.calcEntryRate(hatikoInfo.nMaxLong, safetyMarginPercent=1) if order_info.is_spot else 0 # entryCash / FreeCash  # 현물에서 사용
                         total_amount = bot.get_amount_hatiko(symbol, hatikoInfo.nMaxLong, hatikoInfo.nMaxShort, entryRate)
+                        log_message(f"entry total_amount:{total_amount}")
                         market = bot.client.market(symbol)
                         max_amount = market["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수  # float
                         min_amount = market["limits"]["amount"]["min"] # 지정가 주문 최소 코인개수  # float
