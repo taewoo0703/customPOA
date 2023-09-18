@@ -922,61 +922,36 @@ async def subtract_nIgnoreShort_okx_future():
     return f"nIgnoreShort : {old} -> {new}"
 #endregion subtract_nIgnore
 
-#region 각 거래소별 웹훅 주소 정의
-@ app.post("/hatiko_binance_spot")
+# 주문용 웹훅 주소
+@ app.post("/hatiko")
 @ app.post("/")
-async def hatikolimit_binance_spot(order_info: MarketOrder, background_tasks: BackgroundTasks):
-    global HI_Binance_Spot
-    hatikolimitBase(order_info, background_tasks, HI_Binance_Spot)
-
-@ app.post("/hatiko_binance_future")
-@ app.post("/")
-async def hatikolimit_binance_future(order_info: MarketOrder, background_tasks: BackgroundTasks):
-    global HI_Binance_Future
-    hatikolimitBase(order_info, background_tasks, HI_Binance_Future)
-
-@ app.post("/hatiko_bitget_spot")
-@ app.post("/")
-async def hatikolimit_bitget_spot(order_info: MarketOrder, background_tasks: BackgroundTasks):
-    global HI_Bitget_Spot
-    hatikolimitBase(order_info, background_tasks, HI_Bitget_Spot)
-
-@ app.post("/hatiko_bitget_future")
-@ app.post("/")
-async def hatikolimit_bitget_future(order_info: MarketOrder, background_tasks: BackgroundTasks):
-    global HI_Bitget_Future
-    hatikolimitBase(order_info, background_tasks, HI_Bitget_Future)
-
-@ app.post("/hatiko_bybit_spot")
-@ app.post("/")
-async def hatikolimit_bybit_spot(order_info: MarketOrder, background_tasks: BackgroundTasks):
-    global HI_Bybit_Spot
-    hatikolimitBase(order_info, background_tasks, HI_Bybit_Spot)
-
-@ app.post("/hatiko_bybit_future")
-@ app.post("/")
-async def hatikolimit_bybit_future(order_info: MarketOrder, background_tasks: BackgroundTasks):
-    global HI_Bybit_Future
-    hatikolimitBase(order_info, background_tasks, HI_Bybit_Future)
-
-@ app.post("/hatiko_okx_spot")
-@ app.post("/")
-async def hatikolimit_okx_spot(order_info: MarketOrder, background_tasks: BackgroundTasks):
-    global HI_OKX_Spot
-    hatikolimitBase(order_info, background_tasks, HI_OKX_Spot)
-
-@ app.post("/hatiko_okx_future")
-@ app.post("/")
-async def hatikolimit_okx_future(order_info: MarketOrder, background_tasks: BackgroundTasks):
-    global HI_OKX_Future
-    hatikolimitBase(order_info, background_tasks, HI_OKX_Future)
-
-#endregion 각 거래소별 웹훅 주소 정의
+async def hatiko(order_info: MarketOrder, background_tasks: BackgroundTasks):
+    global HI_Binance_Future, HI_Binance_Spot, HI_Bitget_Future, HI_Bitget_Spot, HI_Bybit_Future, HI_Bybit_Spot, HI_OKX_Future, HI_OKX_Spot
+    if order_info.exchange == "BINANCE":
+        if order_info.is_spot:
+            hatikoBase(order_info, background_tasks, HI_Binance_Spot)
+        elif order_info.is_futures:
+            hatikoBase(order_info, background_tasks, HI_Binance_Future)
+    elif order_info.exchange == "BITGET":
+        if order_info.is_spot:
+            hatikoBase(order_info, background_tasks, HI_Bitget_Spot)
+        elif order_info.is_futures:
+            hatikoBase(order_info, background_tasks, HI_Bitget_Future)
+    elif order_info.exchange == "BYBIT":
+        if order_info.is_spot:
+            hatikoBase(order_info, background_tasks, HI_Bybit_Spot)
+        elif order_info.is_futures:
+            hatikoBase(order_info, background_tasks, HI_Bybit_Future)
+    elif order_info.exchange == "OKX":
+        if order_info.is_spot:
+            hatikoBase(order_info, background_tasks, HI_OKX_Spot)
+        elif order_info.is_futures:
+            hatikoBase(order_info, background_tasks, HI_OKX_Future)
 
 # Hatiko 봇 에러 시 재진입 횟수
 nMaxTry = 5
 
-def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatikoInfo: HatikoInfo):
+def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatikoInfo: HatikoInfo):
     """
     지정가 Hatiko 전략
 
