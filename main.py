@@ -1114,11 +1114,13 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                     return {"result" : "ignore"}
 
                 # 2. 트뷰에서는 청산 시그널로 오기 때문에 진입으로 order_info 수정
+                log_message(f"orderinfo 변경 전 : is_buy : {order_info.is_buy}, is_sell : {order_info.is_sell}")
                 if order_info.is_futures:
                     order_info.is_entry = True
                     order_info.is_close = None
                 order_info.is_buy = None if order_info.is_buy else True
                 order_info.is_sell = None if order_info.is_sell else True
+                log_message(f"orderinfo 변경 후 : is_buy : {order_info.is_buy}, is_sell : {order_info.is_sell}")
 
                 # 3. 미체결 주문 취소 & 재주문
                 exchange_name = order_info.exchange
@@ -1127,10 +1129,12 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 symbol = order_info.unified_symbol
 
                 orderID_list_old = near_dic[order_info.base]
+                log_message(f"len(orderID_list_old): {len(orderID_list_old)}")
                 for orderID in orderID_list_old:
                     log_message(f"orderID : {orderID}")
                     # 미체결 주문 취소
                     order = bot.client.fetch_order(orderID, symbol)
+                    log_message(f"order['status'] : {order['status']}")
                     if order["status"] == "canceled":
                         amountCanceled = order["amount"]
                         sideCanceled = order["side"]
@@ -1141,6 +1145,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         return {"result" : "ignore"}
                     else:
                         resultCancel = bot.client.cancel_order(orderID, symbol)
+                        log_message(f"resultCancel['status'] : {resultCancel['status']}")
                         if resultCancel["status"] == "canceled":
                             amountCanceled = resultCancel["amount"]
                             sideCanceled = resultCancel["side"]
@@ -1148,6 +1153,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                             background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER")
 
                     # 재주문
+                    log_message(f"symbol : {symbol}, sideCanceled : {sideCanceled}, amountCanceled : {amountCanceled}, price : {order_info.price}")
                     order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
                     # order_result = bot.limit_order(order_info, amountCanceled, order_info.price)
                     orderID_list_old.remove(orderID)
