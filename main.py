@@ -314,7 +314,6 @@ LOG = False
 @ app.get("/change_log")
 async def change_log():
     global LOG
-    print("change_log")
     LOG = not LOG
     return f"LOG : {LOG}"
 
