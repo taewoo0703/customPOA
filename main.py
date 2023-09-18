@@ -1073,6 +1073,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         isSettingFinish = True
                     
                     # 매매 주문
+                    log_message(f"nGoal : {nGoal}")
                     for i in range(int(nGoal - nComplete)):
                         entry_amount = entry_amount_list[nComplete]
                         # order_result = bot.client.create_order(symbol, "limit", side, abs(entry_amount), entry_price)
@@ -1085,6 +1086,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                     
                 # 4. 매매가 전부 종료되면 near리스트 업데이트
                 near_dic[order_info.base] = orderID_list
+                log_message(f"len(orderID_list) : {len(orderID_list)}")
 
             elif order_info.order_name in HatikoInfo.entrySignal_list:
                 # Long or Short 시그널 처리
