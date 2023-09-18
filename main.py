@@ -1054,8 +1054,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         total_amount = bot.get_amount_hatiko(symbol, hatikoInfo.nMaxLong, hatikoInfo.nMaxShort, entryRate)
                         log_message(f"total_amount : {total_amount}") if LOG else None
                         market = bot.client.market(symbol)
-                        max_amount = market["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수  # float
-                        min_amount = market["limits"]["amount"]["min"] # 지정가 주문 최소 코인개수  # float
+                        max_amount, min_amount = getMinMaxQty(bot, order_info)
                         log_message(f"max_amount : {max_amount}") if LOG else None
                         log_message(f"min_amount : {min_amount}") if LOG else None
 
@@ -1233,8 +1232,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         total_amount = bot.get_amount_hatiko(symbol, hatikoInfo.nMaxLong, hatikoInfo.nMaxShort)
                         log_message(f"total_amount : {total_amount}")
                         market = bot.client.market(symbol)
-                        max_amount = market["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수
-                        min_amount = market["limits"]["amount"]["min"] # 지정가 주문 최소 코인개수
+                        max_amount, min_amount = getMinMaxQty(bot, order_info)
 
                         # Set nGoal
                         close_amount_list = []
@@ -1347,6 +1345,30 @@ def updateOrderInfo(order_info: MarketOrder, amount: float=None, percent: float=
         order_info.is_sell = is_sell
     if leverage is not None:
         order_info.leverage = leverage
+
+def getMinMaxQty(bot, order_info: MarketOrder) -> (float, float):
+    """
+    주문 시 최대, 최소 수량을 구하는 방법이 거래소마다 다름.
+    max_amount : 지정가 주문 최대 코인개수
+    min_amount : 지정가 주문 최소 코인개수
+    return (최대수량, 최소수량)
+    """
+    market = bot.client.market(order_info.unified_symbol)
+    if order_info.exchange in ("BINANCE", "BYBIT"):
+        max_amount = market["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수
+        min_amount = market["limits"]["amount"]["min"] # 지정가 주문 최소 코인개수
+    elif order_info.exchange == "BITGET":
+        max_amount = 100000000000000000000000000000 if market["limits"]["amount"]["max"] in (0, None) else market["limits"]["amount"]["max"]
+        min_amount = 0                              if market["limits"]["amount"]["min"] in (0, None) else market["limits"]["amount"]["min"]
+    elif order_info.exchange == "OKX":
+        max_amount = float(market["info"]["maxLmtSz"])
+        min_amount = float(market["info"]["minSz"])
+    
+    return max_amount, min_amount
+
+
+
+
 
 #endregion ############################### Hatiko ###############################
 
