@@ -1053,10 +1053,8 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         log_message(f"entryRate : {entryRate}") if LOG else None
                         total_amount = bot.get_amount_hatiko(symbol, hatikoInfo.nMaxLong, hatikoInfo.nMaxShort, entryRate)
                         log_message(f"total_amount : {total_amount}") if LOG else None
-                        market = bot.client.market(symbol)
                         max_amount, min_amount = getMinMaxQty(bot, order_info)
-                        log_message(f"max_amount : {max_amount}") if LOG else None
-                        log_message(f"min_amount : {min_amount}") if LOG else None
+                        log_message(f"max_amount : {max_amount}, min_amount : {min_amount}") if LOG else None
 
                         # Set nGoal
                         entry_amount_list = []
@@ -1231,10 +1229,9 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         # 초기 세팅
                         # total amount를 max_amount로 쪼개기
                         total_amount = bot.get_amount_hatiko(symbol, hatikoInfo.nMaxLong, hatikoInfo.nMaxShort)
-                        log_message(f"total_amount : {total_amount}")
-                        market = bot.client.market(symbol)
+                        log_message(f"total_amount : {total_amount}") if LOG else None
                         max_amount, min_amount = getMinMaxQty(bot, order_info)
-
+                        log_message(f"max_amount : {max_amount}, min_amount : {min_amount}") if LOG else None
                         # Set nGoal
                         close_amount_list = []
                         if (total_amount % max_amount < min_amount):
@@ -1246,8 +1243,10 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                             for i in range(int(nGoal - 1)):
                                 close_amount_list.append(max_amount)
                             remain_amount = float(bot.client.amount_to_precision(symbol, total_amount % max_amount))
+                            log_message(f"remain_amount : {remain_amount}") if LOG else None
                             close_amount_list.append(remain_amount)
-
+                        log_message(f"len(close_amount_list) : {len(close_amount_list)}") if LOG else None
+                        
                         # 트뷰에 나오는 청산 가격에 그대로 청산
                         close_price = order_info.price  
                         isSettingFinish = True
@@ -1259,6 +1258,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                             nComplete += 1
                         else:
                             # order_result = bot.future.create_order(symbol, "limit", side, close_amount, close_price, params={"reduceOnly": True})
+                            log_message(f"close_amount : {close_amount}") if LOG else None
                             order_result = bot.limit_order(order_info, close_amount, close_price)
                             nComplete += 1
                             updateOrderInfo(order_info, amount=close_amount)
