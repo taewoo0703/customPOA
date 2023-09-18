@@ -1145,9 +1145,10 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         resultCancel = bot.client.cancel_order(orderID, symbol)
                         log_message(f"resultCancel['status'] : {resultCancel['status']}") if LOG else None
                         orderAfterCancel = bot.client.fetch_order(orderID, symbol)
+                        log_message(f"orderAfterCancel['status'] : {orderAfterCancel['status']}") if LOG else None
                         if orderAfterCancel["status"] == "canceled":
-                            amountCanceled = resultCancel["amount"]
-                            sideCanceled = resultCancel["side"]
+                            amountCanceled = orderAfterCancel["amount"]
+                            sideCanceled = orderAfterCancel["side"]
                             # [Debug] 미체결 주문 취소 후 알람 발생
                             background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER")
 
@@ -1212,9 +1213,9 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 bot.init_info(order_info)
                 symbol = order_info.unified_symbol
                 open_orders = bot.client.fetch_open_orders(symbol)
-                if len(open_orders) > 0:
-                    bot.client.cancel_all_orders(symbol)
-                    isCancelSuccess = True
+                for open_order in open_orders:
+                    bot.client.cancel_order(open_order["id"], symbol)
+                isCancelSuccess = True
 
                 # [Debug] 미체결 주문 취소 후 알람 발생
                 if not isSendSignalDiscord and isCancelSuccess:
