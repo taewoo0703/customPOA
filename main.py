@@ -307,6 +307,16 @@ async def hedge(hedge_data: HedgeData, background_tasks: BackgroundTasks):
 # by PTW
 ##############################################################################
 
+# LOG 찍어보기 Flag
+LOG = False
+
+# LOG Flag 변경
+@ app.get("/change_log")
+async def change_log():
+    global LOG
+    LOG = not LOG
+    return f"LOG : {LOG}"
+
 # 유효성 검증 후의 order_info 보기 
 @ app.post("/orderinfo")
 @ app.post("/")
@@ -343,7 +353,6 @@ async def orderinfo(order_info: MarketOrder, background_tasks: BackgroundTasks):
         "margin_mode(str)" : str(order_info.margin_mode)
         }
     return res
-
 
 #region ############################### Hatiko ###############################
 
@@ -967,9 +976,6 @@ async def hatikolimit_okx_future(order_info: MarketOrder, background_tasks: Back
 # Hatiko 봇 에러 시 재진입 횟수
 nMaxTry = 5
 
-# LOG 찍어보기 Flag
-LOG = True
-
 def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatikoInfo: HatikoInfo):
     """
     지정가 Hatiko 전략
@@ -1386,7 +1392,7 @@ hatiko_long2_list = []    # Hatiko 전략 Long2 진입 중인 종목들 list
 hatiko_long3_list = []    # Hatiko 전략 Long3 진입 중인 종목들 list
 hatiko_long4_list = []    # Hatiko 전략 Long4 진입 중인 종목들 list
 
-@ app.get("/resetkctrendandhatiko")
+@ app.get("/reset_kctrendandhatiko")
 async def resetkctrendandhatiko():
     global kctrend_long_list, hatiko_long1_list, hatiko_long2_list, hatiko_long3_list, hatiko_long4_list
 
@@ -1400,7 +1406,7 @@ async def resetkctrendandhatiko():
     
     return "Intialize kctrend & hatiko Variables Completed!!!"
 
-@ app.get("/kctrendandhatikoinfo")
+@ app.get("/kctrendandhatiko_info")
 async def kctrendandhatikoinfo():
     res = {
         "kctrend_long_list" : str(kctrend_long_list),
@@ -1639,7 +1645,7 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
     finally:
         pass
 
-@ app.post("/kctrendandhatikolimit")
+@ app.post("/kctrendandhatiko_limit")
 @ app.post("/")
 async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: BackgroundTasks):
     """
