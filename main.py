@@ -1126,6 +1126,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
 
                 orderID_list_old = near_dic[order_info.base]
                 for orderID in orderID_list_old:
+                    log_message(f"orderID : {orderID}")
                     # 미체결 주문 취소
                     order = bot.client.fetch_order(orderID, symbol)
                     if order["status"] == "canceled":
@@ -1216,6 +1217,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         # 초기 세팅
                         # total amount를 max_amount로 쪼개기
                         total_amount = bot.get_amount_hatiko(symbol, hatikoInfo.nMaxLong, hatikoInfo.nMaxShort)
+                        log_message(f"total_amount : {total_amount}")
                         market = bot.client.market(symbol)
                         max_amount = market["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수
                         min_amount = market["limits"]["amount"]["min"] # 지정가 주문 최소 코인개수

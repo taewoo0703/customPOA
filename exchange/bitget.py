@@ -287,8 +287,10 @@ class Bitget:
             free_balance = self.client.fetch_free_balance({"coin": base})
             free_balance_by_base = free_balance.get(base)
 
-        # if free_balance_by_base is None or free_balance_by_base == 0:
-        #     raise error.FreeAmountNoneError()
+        if free_balance_by_base is None or free_balance_by_base == 0:
+            free_balance_by_base = 0
+            # raise error.FreeAmountNoneError()
+            
         return free_balance_by_base
 
     # hatiko용 get_futures_position
