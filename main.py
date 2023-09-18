@@ -1355,12 +1355,15 @@ def getMinMaxQty(bot, order_info: MarketOrder) -> (float, float):
     return (최대수량, 최소수량)
     """
     market = bot.client.market(order_info.unified_symbol)
-    if order_info.exchange in ("BINANCE", "BYBIT"):
-        max_amount = market["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수
-        min_amount = market["limits"]["amount"]["min"] # 지정가 주문 최소 코인개수
+    if order_info.exchange in "BINANCE":
+        max_amount = market["limits"]["amount"]["max"]
+        min_amount = market["limits"]["amount"]["min"]
+    elif order_info.exchange == "BYBIT":
+        max_amount = market["limits"]["amount"]["max"] 
+        min_amount = market["limits"]["amount"]["min"] 
     elif order_info.exchange == "BITGET":
-        max_amount = 100000000000000000000000000000 if market["limits"]["amount"]["max"] in (0, None) else market["limits"]["amount"]["max"]
-        min_amount = 0                              if market["limits"]["amount"]["min"] in (0, None) else market["limits"]["amount"]["min"]
+        max_amount = 100000000000000000000000000000     if market["limits"]["amount"]["max"] in (0, None) else market["limits"]["amount"]["max"]
+        min_amount = market["precision"]["amount"]*10   if market["limits"]["amount"]["min"] in (0, None) else market["limits"]["amount"]["min"]
     elif order_info.exchange == "OKX":
         max_amount = float(market["info"]["maxLmtSz"])
         min_amount = float(market["info"]["minSz"])
