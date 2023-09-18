@@ -363,10 +363,12 @@ class HatikoInfo:
                          "TakeProfit_L1", "TakeProfit_L2", "TakeProfit_L3", "TakeProfit_L4",
                          "TakeProfit_L1", "TakeProfit_L2", "TakeProfit_L3", "TakeProfit_L4"]
     
-    def __init__(self, nMaxLong=2, nMaxShort=1):
-        # 최대 종목 개수
+    def __init__(self, nMaxLong=2, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0):
+        # 종목 개수 관리
         self.nMaxLong = nMaxLong
         self.nMaxShort = nMaxShort
+        self.nIgnoreLong = nIgnoreLong
+        self.nIgnoreShort = nIgnoreShort
 
         # 지정가 Hatiko용 near시그널 딕셔너리
         # base(종목명) : orderID_list(오더id 리스트)
@@ -470,6 +472,8 @@ class HatikoInfo:
             res = {
                 "nMaxLong" : str(self.nMaxLong),
                 "nMaxShort" : str(self.nMaxShort),
+                "nIgnoreLong" : str(self.nIgnoreLong),
+                "nIgnoreShort" : str(self.nIgnoreShort),
                 "nearLong1_dic"  : str(list(self.nearLong1_dic.keys())),
                 "nearLong2_dic"  : str(list(self.nearLong2_dic.keys())),
                 "nearLong3_dic"  : str(list(self.nearLong3_dic.keys())),
@@ -539,6 +543,14 @@ class HatikoInfo:
     def add_nMaxShort(self):
         self.nMaxShort += 1
         return self.nMaxShort
+    
+    def add_nIgnoreLong(self):
+        self.nIgnoreLong += 1
+        return self.nIgnoreLong
+    
+    def add_nIgnoreShort(self):
+        self.nIgnoreShort += 1
+        return self.nIgnoreShort
 
     def subtract_nMaxLong(self):
         self.nMaxLong -= 1
@@ -547,6 +559,14 @@ class HatikoInfo:
     def subtract_nMaxShort(self):
         self.nMaxShort -= 1
         return self.nMaxShort
+    
+    def subtract_nIgnoreLong(self):
+        self.nIgnoreLong -= 1
+        return self.nIgnoreLong
+
+    def subtract_nIgnoreShort(self):
+        self.nIgnoreShort -= 1
+        return self.nIgnoreShort
 
     #endregion request 호출용 함수
 

@@ -348,14 +348,14 @@ async def orderinfo(order_info: MarketOrder, background_tasks: BackgroundTasks):
 #region ############################### Hatiko ###############################
 
 #region 각 거래소별 HatikoInfo
-HI_Binance_Spot     = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=0) 
-HI_Binance_Future   = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1)
-HI_OKX_Spot         = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=0)
-HI_OKX_Future       = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1)
-HI_Bitget_Spot      = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=0)
-HI_Bitget_Future    = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1)
-HI_Bybit_Spot       = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=0)
-HI_Bybit_Future     = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1)
+HI_Binance_Spot     = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0) 
+HI_Binance_Future   = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0)
+HI_OKX_Spot         = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0)
+HI_OKX_Future       = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0)
+HI_Bitget_Spot      = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0)
+HI_Bitget_Future    = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0)
+HI_Bybit_Spot       = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0)
+HI_Bybit_Future     = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0)
 #endregion 각 거래소별 HatikoInfo
 
 #region HatikoInfo 관련 메모리 모니터
