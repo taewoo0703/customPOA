@@ -967,6 +967,9 @@ async def hatikolimit_okx_future(order_info: MarketOrder, background_tasks: Back
 # Hatiko 봇 에러 시 재진입 횟수
 nMaxTry = 5
 
+# LOG 찍어보기 Flag
+LOG = True
+
 def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatikoInfo: HatikoInfo):
     """
     지정가 Hatiko 전략
@@ -1047,12 +1050,14 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
 
                         # 진입수량 설정
                         entryRate = hatikoInfo.calcEntryRate(hatikoInfo.nMaxLong, safetyMarginPercent=1) if order_info.is_spot else 0 # entryCash / FreeCash  # 현물에서 사용
-                        log_message(f"entryRate : {entryRate}")
+                        log_message(f"entryRate : {entryRate}") if LOG else None
                         total_amount = bot.get_amount_hatiko(symbol, hatikoInfo.nMaxLong, hatikoInfo.nMaxShort, entryRate)
-                        log_message(f"total_amount : {total_amount}")
+                        log_message(f"total_amount : {total_amount}") if LOG else None
                         market = bot.client.market(symbol)
                         max_amount = market["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수  # float
                         min_amount = market["limits"]["amount"]["min"] # 지정가 주문 최소 코인개수  # float
+                        log_message(f"max_amount : {max_amount}") if LOG else None
+                        log_message(f"min_amount : {min_amount}") if LOG else None
 
                         # Set nGoal
                         entry_amount_list = []
@@ -1065,7 +1070,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                             for i in range(int(nGoal - 1)):
                                 entry_amount_list.append(max_amount)
                             remain_amount = float(bot.client.amount_to_precision(symbol, total_amount % max_amount))
-                            log_message(f"remain_amount : {remain_amount}")
+                            log_message(f"remain_amount : {remain_amount}") if LOG else None
                             entry_amount_list.append(remain_amount)
                         
                         # 진입 가격은 order_info로 넘겨받음
@@ -1073,11 +1078,11 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         isSettingFinish = True
                     
                     # 매매 주문
-                    log_message(f"nGoal : {nGoal}")
+                    log_message(f"nGoal : {nGoal}") if LOG else None
                     for i in range(int(nGoal - nComplete)):
                         entry_amount = entry_amount_list[nComplete]
                         # order_result = bot.client.create_order(symbol, "limit", side, abs(entry_amount), entry_price)
-                        log_message(f"entry_amount {i} : {entry_amount}")
+                        log_message(f"entry_amount {i} : {entry_amount}") if LOG else None
                         order_result = bot.limit_order(order_info, entry_amount, entry_price)   # 실패 시 재시도는 bot.limit_order 안에서 처리
                         orderID_list.append(order_result["id"])
                         nComplete += 1
@@ -1089,7 +1094,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                     
                 # 4. 매매가 전부 종료되면 near리스트 업데이트
                 near_dic[order_info.base] = orderID_list
-                log_message(f"len(orderID_list) : {len(orderID_list)}")
+                log_message(f"len(orderID_list) : {len(orderID_list)}") if LOG else None
 
             elif order_info.order_name in HatikoInfo.entrySignal_list:
                 # Long or Short 시그널 처리
@@ -1123,12 +1128,12 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 symbol = order_info.unified_symbol
 
                 orderID_list_old = near_dic[order_info.base]
-                log_message(f"len(orderID_list_old): {len(orderID_list_old)}")
+                log_message(f"len(orderID_list_old): {len(orderID_list_old)}") if LOG else None
                 for orderID in orderID_list_old:
-                    log_message(f"orderID : {orderID}")
+                    log_message(f"orderID : {orderID}") if LOG else None
                     # 미체결 주문 취소
                     order = bot.client.fetch_order(orderID, symbol)
-                    log_message(f"order['status'] : {order['status']}")
+                    log_message(f"order['status'] : {order['status']}") if LOG else None
                     if order["status"] == "canceled":
                         amountCanceled = order["amount"]
                         sideCanceled = order["side"]
@@ -1139,7 +1144,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         return {"result" : "ignore"}
                     else:
                         resultCancel = bot.client.cancel_order(orderID, symbol)
-                        log_message(f"resultCancel['status'] : {resultCancel['status']}")
+                        log_message(f"resultCancel['status'] : {resultCancel['status']}") if LOG else None
                         orderAfterCancel = bot.client.fetch_order(orderID, symbol)
                         if orderAfterCancel["status"] == "canceled":
                             amountCanceled = resultCancel["amount"]
@@ -1147,8 +1152,8 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                             # [Debug] 미체결 주문 취소 후 알람 발생
                             background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER")
 
-                    # 재주문
-                    log_message(f"symbol : {symbol}, sideCanceled : {sideCanceled}, amountCanceled : {amountCanceled}, price : {order_info.price}")
+                    # 재주문 
+                    log_message(f"symbol : {symbol}, sideCanceled : {sideCanceled}, amountCanceled : {amountCanceled}, price : {order_info.price}") if LOG else None
                     order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
                     # order_result = bot.limit_order(order_info, amountCanceled, order_info.price)
                     orderID_list_old.remove(orderID)

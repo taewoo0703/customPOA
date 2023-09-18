@@ -121,7 +121,6 @@ def retry(
     while attempts < max_attempts:
         try:
             result = func(*args)  # 함수 실행
-            log_message("retry 잘끝남")
             return result
         except Exception as e:
             logger.error(f"에러 발생: {str(e)}")
