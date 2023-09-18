@@ -385,7 +385,7 @@ async def hatikoinfo_bybit_spot():
 async def hatikoinfo_bybit_future():
     return HI_Bybit_Future.getHatikoInfo()
 
-@ app.get("/hatikoinfo_Bitget_spot")
+@ app.get("/hatikoinfo_bitget_spot")
 async def hatikoinfo_bitget_spot():
     return HI_Bitget_Spot.getHatikoInfo()
 
