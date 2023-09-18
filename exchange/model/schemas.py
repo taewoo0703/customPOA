@@ -348,15 +348,6 @@ class ArbiData(BaseModel):
                 values[key] = value.upper()
         return values
 
-class HatikoOrder(OrderBase):
-    type: Literal["market", "limit"] = "limit"
-    nMaxLong: int = 100
-    nMaxShort: int = 100
-    nIgnoreLong: int = 0
-    nIgnoreShort: int = 0
-
-
-
 class HatikoInfo:
     # [static] order_name 리스트
     nearSignal_list = ["nearLong1", "nearLong2", "nearLong3", "nearLong4",

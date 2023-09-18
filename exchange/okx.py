@@ -318,7 +318,6 @@ class Okx:
 # by PTW
 ##############################################################################
 
-    # by PTW
     # hatiko용 get_amount
     def get_amount_hatiko(self, symbol, nMaxLong, nMaxShort, entryRate: float=0) -> float:
         """
@@ -361,7 +360,6 @@ class Okx:
 
         return result
 
-    # by PTW
     # hatiko용 get_balance
     # "거래할 수량이 없습니다" Error를 발생시키지 않음.
     # 나머지는 동일
@@ -377,7 +375,6 @@ class Okx:
         #     raise error.FreeAmountNoneError()
         return free_balance_by_base
 
-    # by PTW
     # hatiko용 get_futures_position
     # "거래할 수량이 없습니다" Error를 발생시키지 않음.
     # 나머지는 동일
@@ -412,12 +409,35 @@ class Okx:
             return 0
         
     # limit 오더 함수
-    # market_order 함수를 최대한 활용함
+    # market_order 함수를 최대한 활용함 (market_close와 겸용으로 사용)
     def limit_order(self, order_info: MarketOrder, amount: float, price: float):   
         from exchange.pexchange import retry
 
         symbol = order_info.unified_symbol  # self.parse_symbol(order_info.base, order_info.quote)
         params = {"tgtCcy": "base_ccy"}
+
+        if order_info.is_futures and order_info.is_close:
+            if self.position_mode == "one-way":
+                if self.order_info.margin_mode is None or self.order_info.margin_mode == "isolated":
+                    params = {"reduceOnly": True, "tdMode": "isolated"}
+                elif self.order_info.margin_mode == "cross":
+                    params = {"reduceOnly": True, "tdMode": "cross"}
+
+            elif self.position_mode == "hedge":
+                if order_info.is_futures and order_info.side == "buy":
+                    if order_info.is_entry:
+                        pos_side = "long"
+                    elif order_info.is_close:
+                        pos_side = "short"
+                elif order_info.is_futures and order_info.side == "sell":
+                    if order_info.is_entry:
+                        pos_side = "short"
+                    elif order_info.is_close:
+                        pos_side = "long"
+                if self.order_info.margin_mode is None or self.order_info.margin_mode == "isolated":
+                    params = {"posSide": pos_side, "tdMode": "isolated"}
+                elif self.order_info.margin_mode == "cross":
+                    params = {"posSide": pos_side, "tdMode": "cross"}
 
         try:
             return retry(
@@ -426,52 +446,6 @@ class Okx:
                 "limit",
                 order_info.side,
                 amount,
-                price,
-                params,
-                order_info=order_info,
-                max_attempts=5,
-                delay=0.1,
-                instance=self,
-            )
-        except Exception as e:
-            raise error.OrderError(e, self.order_info)
-
-    # limit 청산 함수
-    # market_close 함수를 최대한 활용함
-    def limit_close(self, order_info: MarketOrder, amount: float, price: float):
-        from exchange.pexchange import retry
-
-        symbol = self.order_info.unified_symbol
-
-        if self.position_mode == "one-way":
-            if self.order_info.margin_mode is None or self.order_info.margin_mode == "isolated":
-                params = {"reduceOnly": True, "tdMode": "isolated"}
-            elif self.order_info.margin_mode == "cross":
-                params = {"reduceOnly": True, "tdMode": "cross"}
-
-        elif self.position_mode == "hedge":
-            if order_info.is_futures and order_info.side == "buy":
-                if order_info.is_entry:
-                    pos_side = "long"
-                elif order_info.is_close:
-                    pos_side = "short"
-            elif order_info.is_futures and order_info.side == "sell":
-                if order_info.is_entry:
-                    pos_side = "short"
-                elif order_info.is_close:
-                    pos_side = "long"
-            if self.order_info.margin_mode is None or self.order_info.margin_mode == "isolated":
-                params = {"posSide": pos_side, "tdMode": "isolated"}
-            elif self.order_info.margin_mode == "cross":
-                params = {"posSide": pos_side, "tdMode": "cross"}
-
-        try:
-            return retry(
-                self.client.create_order,
-                symbol,
-                "limit",
-                order_info.side,
-                abs(amount),
                 price,
                 params,
                 order_info=order_info,

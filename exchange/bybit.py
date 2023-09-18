@@ -278,7 +278,6 @@ class Bybit:
 # by PTW
 ##############################################################################
 
-    # by PTW
     # hatiko용 get_amount
     def get_amount_hatiko(self, symbol, nMaxLong, nMaxShort, entryRate: float=0) -> float:
         """
@@ -321,7 +320,6 @@ class Bybit:
 
         return result
 
-    # by PTW
     # hatiko용 get_balance
     # "거래할 수량이 없습니다" Error를 발생시키지 않음.
     # 나머지는 동일
@@ -337,7 +335,6 @@ class Bybit:
         #     raise error.FreeAmountNoneError()
         return free_balance_by_base
 
-    # by PTW
     # hatiko용 get_futures_position
     # "거래할 수량이 없습니다" Error를 발생시키지 않음.
     # 나머지는 동일
@@ -367,12 +364,31 @@ class Bybit:
             return 0
         
     # limit 오더 함수
-    # market_order 함수를 최대한 활용함
+    # market_order 함수를 최대한 활용함 (market_close와 겸용으로 사용)
     def limit_order(self, order_info: MarketOrder, amount: float, price: float):   
         from exchange.pexchange import retry
 
         symbol = order_info.unified_symbol
         params = {}
+        if order_info.is_futures and order_info.is_close:
+            if self.position_mode == "one-way":
+                params = {"reduceOnly": True, "position_idx": 0}
+            elif self.position_mode == "hedge":
+                if order_info.side == "buy":
+                    if order_info.is_entry:
+                        position_idx = 1
+                        params = {"position_idx": position_idx}
+                    elif order_info.is_close:
+                        position_idx = 2
+                        params = {"reduceOnly": True, "position_idx": position_idx}
+                elif order_info.side == "sell":
+                    if order_info.is_entry:
+                        position_idx = 2
+                        params = {"position_idx": position_idx}
+                    elif order_info.is_close:
+                        position_idx = 1
+                        params = {"reduceOnly": True, "position_idx": position_idx}
+        
         try:
             return retry(
                 self.client.create_order,
@@ -390,46 +406,4 @@ class Bybit:
         except Exception as e:
             raise error.OrderError(e, order_info)
 
-    # limit 청산 함수
-    # market_close 함수를 최대한 활용함
-    def limit_close(self, order_info: MarketOrder, amount: float, price: float):
-        from exchange.pexchange import retry
-
-        symbol = self.order_info.unified_symbol
-        if self.position_mode == "one-way":
-            params = {"reduceOnly": True, "position_idx": 0}
-        elif self.position_mode == "hedge":
-            if order_info.side == "buy":
-                if order_info.is_entry:
-                    position_idx = 1
-                    params = {"position_idx": position_idx}
-                elif order_info.is_close:
-                    position_idx = 2
-                    params = {"reduceOnly": True, "position_idx": position_idx}
-            elif order_info.side == "sell":
-                if order_info.is_entry:
-                    position_idx = 2
-                    params = {"position_idx": position_idx}
-                elif order_info.is_close:
-                    position_idx = 1
-                    params = {"reduceOnly": True, "position_idx": position_idx}
-
-        try:
-            result = retry(
-                self.client.create_order,
-                symbol,
-                "limit",
-                order_info.side,
-                abs(amount),
-                price,
-                params,
-                order_info=order_info,
-                max_attempts=5,
-                delay=0.1,
-                instance=self,
-            )
-            return result
-        except Exception as e:
-            raise error.OrderError(e, self.order_info)
-        
-        
+    
