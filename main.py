@@ -1082,6 +1082,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         orderID_list.append(order_result["id"])
                         nComplete += 1
                         # 디스코드 로그생성
+                        updateOrderInfo(order_info, amount=entry_amount)
                         background_tasks.add_task(log, exchange_name, order_result, order_info)
                     
                 # 4. 매매가 전부 종료되면 near리스트 업데이트
@@ -1157,6 +1158,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         order_info.is_close = None
                     order_info.is_buy = None if order_info.is_buy else True
                     order_info.is_sell = None if order_info.is_sell else True
+                    updateOrderInfo(order_info, amount=amountCanceled, side=sideCanceled)
                     background_tasks.add_task(log, exchange_name, order_result, order_info)
 
                 # 4. near_dic 오더id 업데이트
@@ -1253,6 +1255,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                             # order_result = bot.future.create_order(symbol, "limit", side, close_amount, close_price, params={"reduceOnly": True})
                             order_result = bot.limit_order(order_info, close_amount, close_price)
                             nComplete += 1
+                            updateOrderInfo(order_info, amount=close_amount)
                             background_tasks.add_task(log, exchange_name, order_result, order_info)
 
                 # 4. 매매가 전부 종료된 후 매매종목 리스트 업데이트
@@ -1311,6 +1314,29 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
         finally:
             pass
 
+def updateOrderInfo(order_info: MarketOrder, amount: float=None, percent: float=None, price: float=None, 
+                    side=None, is_entry: bool=None, is_close: bool=None, is_buy: bool=None, is_sell: bool=None):
+    """
+    customPOA는 order_info의 amount, percent, price에 구애받지 않고 거래하는 경우가 많다.
+    이런 경우 log와 실매매간의 괴리가 있을 수 있으며, 경우에 따라 log가 출력되지 않는다.
+    이를 해결하기 위해 log를 찍기 전에 이 메소드를 사용하여 log 출력을 보장한다.
+    """
+    if amount is not None:
+        order_info.amount = amount
+    if percent is not None:
+        order_info.percent = percent
+    if price is not None:
+        order_info.price = price
+    if side is not None:
+        order_info.side = side
+    if is_entry is not None:
+        order_info.is_entry = is_entry
+    if is_close is not None:
+        order_info.is_close = is_close
+    if is_buy is not None:
+        order_info.is_buy = is_buy
+    if is_sell is not None:
+        order_info.is_sell = is_sell
 #endregion ############################### Hatiko ###############################
 
 
