@@ -1113,16 +1113,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                 if order_info.base not in near_dic or order_info.base in entry_list: 
                     return {"result" : "ignore"}
 
-                # 2. 트뷰에서는 청산 시그널로 오기 때문에 진입으로 order_info 수정
-                log_message(f"orderinfo 변경 전 : is_buy : {order_info.is_buy}, is_sell : {order_info.is_sell}")
-                if order_info.is_futures:
-                    order_info.is_entry = True
-                    order_info.is_close = None
-                order_info.is_buy = None if order_info.is_buy else True
-                order_info.is_sell = None if order_info.is_sell else True
-                log_message(f"orderinfo 변경 후 : is_buy : {order_info.is_buy}, is_sell : {order_info.is_sell}")
-
-                # 3. 미체결 주문 취소 & 재주문
+                # 2. 미체결 주문 취소 & 재주문
                 exchange_name = order_info.exchange
                 bot = get_bot(exchange_name, order_info.kis_number)
                 bot.init_info(order_info)
@@ -1146,7 +1137,8 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                     else:
                         resultCancel = bot.client.cancel_order(orderID, symbol)
                         log_message(f"resultCancel['status'] : {resultCancel['status']}")
-                        if resultCancel["status"] == "canceled":
+                        orderAfterCancel = bot.client.fetch_order(orderID, symbol)
+                        if orderAfterCancel["status"] == "canceled":
                             amountCanceled = resultCancel["amount"]
                             sideCanceled = resultCancel["side"]
                             # [Debug] 미체결 주문 취소 후 알람 발생
@@ -1159,7 +1151,12 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                     orderID_list_old.remove(orderID)
                     orderID_list.append(order_result["id"])
 
-                    # 디스코드로 알람 전송
+                    # 트뷰에서는 청산 시그널로 오기 때문에 진입으로 order_info 수정 후 디스코드 알람 전송
+                    if order_info.is_futures:
+                        order_info.is_entry = True
+                        order_info.is_close = None
+                    order_info.is_buy = None if order_info.is_buy else True
+                    order_info.is_sell = None if order_info.is_sell else True
                     background_tasks.add_task(log, exchange_name, order_result, order_info)
 
                 # 4. near_dic 오더id 업데이트
