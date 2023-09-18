@@ -1338,7 +1338,7 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                 near_ignore_list = hatikoInfo.matchNearIgnoreList(order_info.order_name)
                 if (order_info.side == "buy" and len(near_ignore_list) < nIgnoreLong) or \
                     (order_info.side == "sell" and len(near_ignore_list) < nIgnoreShort):
-                    if not order_info.base in near_ignore_list:
+                    if order_info.base not in near_ignore_list:
                         near_ignore_list.append(order_info.base)
                     background_tasks.add_task(log_custom_message, order_info, "IGNORE")
                     return {"result" : "ignore"}
@@ -1369,7 +1369,6 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                         # 진입수량 설정
                         entryRate = hatikoInfo.calcEntryRate(hatikoInfo.nMaxLong, safetyMarginPercent=1) if order_info.is_spot else 0 # entryCash / FreeCash  # 현물에서 사용
                         total_amount = bot.get_amount_hatiko(symbol, hatikoInfo.nMaxLong, hatikoInfo.nMaxShort, entryRate)
-                        log_message(f"entry total_amount:{total_amount}")
                         market = bot.client.market(symbol)
                         max_amount = market["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수  # float
                         min_amount = market["limits"]["amount"]["min"] # 지정가 주문 최소 코인개수  # float
@@ -1411,7 +1410,7 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                 
                 near_dic = hatikoInfo.matchNearDic(order_info.order_name)
                 entry_list = hatikoInfo.matchEntryList(order_info.order_name)
-                if order_info.base in near_dic:
+                if order_info.base in near_dic and order_info.base not in entry_list:
                     entry_list.append(order_info.base)
                     # [Debug] 트뷰 시그널이 도착했다는 알람 발생
                     if not isSendSignalDiscord:
@@ -1428,6 +1427,13 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                 entry_list = hatikoInfo.matchEntryList(order_info.order_name)
                 if order_info.base not in near_dic or order_info.base in entry_list: 
                     return {"result" : "ignore"}
+
+                # 2. 트뷰에서는 청산 시그널로 오기 때문에 진입으로 order_info 수정
+                if order_info.is_futures:
+                    order_info.is_entry = True
+                    order_info.is_close = False
+                order_info.is_buy = not order_info.is_buy
+                order_info.is_sell = not order_info.is_sell
 
                 # 3. 미체결 주문 취소 & 재주문
                 exchange_name = order_info.exchange
@@ -1456,17 +1462,12 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                             background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER")
 
                     # 재주문
-                    order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
-                    # order_result = bot.limit_order(order_info, amountCanceled, order_info.price)
+                    # order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
+                    order_result = bot.limit_order(order_info, amountCanceled, order_info.price)
                     orderID_list_old.remove(orderID)
                     orderID_list.append(order_result["id"])
 
-                    # 트뷰에서는 청산 시그널로 오기 때문에 디스코드로 알람 보낼때는 진입으로 전환해줌
-                    if order_info.is_futures:
-                        order_info.is_entry = True
-                        order_info.is_close = False
-                    order_info.is_buy = not order_info.is_buy
-                    order_info.is_sell = not order_info.is_sell
+                    # 디스코드로 알람 전송
                     background_tasks.add_task(log, exchange_name, order_result, order_info)
 
                 # 4. near_dic 오더id 업데이트
@@ -1564,7 +1565,7 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                             nComplete += 1
                         else:
                             # order_result = bot.future.create_order(symbol, "limit", side, close_amount, close_price, params={"reduceOnly": True})
-                            order_result = bot.limit_close(order_info, close_amount, close_price)
+                            order_result = bot.limit_order(order_info, close_amount, close_price)
                             nComplete += 1
                             background_tasks.add_task(log, exchange_name, order_result, order_info)
 
@@ -1789,7 +1790,7 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
                 order_result = bot.market_order(order_info)
 
             ## (3) 켈트너 목록 추가
-            if not order_info.base in kctrend_long_list:
+            if order_info.base not in kctrend_long_list:
                 kctrend_long_list.append(order_info.base)
 
             ## (4) Hatiko 목록 초기화       
@@ -1805,7 +1806,7 @@ async def kctrendandhatiko(order_info: MarketOrder, background_tasks: Background
         # 2-2. 켈트너 전략 청산 시그널
         elif order_name in kctrend_sell_signal_list:
             ## (1) 켈트너 전략 포지션 확인
-            if not order_info.base in kctrend_long_list:
+            if order_info.base not in kctrend_long_list:
                 return {"result" : "ignore"}
             
             ## (2) 켈트너 전략 청산
@@ -1932,7 +1933,7 @@ async def kctrendandhatikolimit(order_info: MarketOrder, background_tasks: Backg
                 order_result = bot.limit_order(order_info)
 
             ## (2) 켈트너 목록 추가
-            if not order_info.base in kctrend_long_list:
+            if order_info.base not in kctrend_long_list:
                 kctrend_long_list.append(order_info.base)
 
             ## (3) Hatiko 목록 초기화       
