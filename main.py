@@ -1083,6 +1083,8 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                         nComplete += 1
                         # 디스코드 로그생성
                         updateOrderInfo(order_info, amount=entry_amount)
+                        if order_info.is_spot:
+                            order_info.leverage = None
                         background_tasks.add_task(log, exchange_name, order_result, order_info)
                     
                 # 4. 매매가 전부 종료되면 near리스트 업데이트
@@ -1315,7 +1317,8 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
             pass
 
 def updateOrderInfo(order_info: MarketOrder, amount: float=None, percent: float=None, price: float=None, 
-                    side=None, is_entry: bool=None, is_close: bool=None, is_buy: bool=None, is_sell: bool=None):
+                    side=None, is_entry: bool=None, is_close: bool=None, is_buy: bool=None, is_sell: bool=None,
+                    leverage: int=None):
     """
     customPOA는 order_info의 amount, percent, price에 구애받지 않고 거래하는 경우가 많다.
     이런 경우 log와 실매매간의 괴리가 있을 수 있으며, 경우에 따라 log가 출력되지 않는다.
@@ -1337,6 +1340,9 @@ def updateOrderInfo(order_info: MarketOrder, amount: float=None, percent: float=
         order_info.is_buy = is_buy
     if is_sell is not None:
         order_info.is_sell = is_sell
+    if leverage is not None:
+        order_info.leverage = leverage
+
 #endregion ############################### Hatiko ###############################
 
 
