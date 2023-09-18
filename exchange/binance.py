@@ -368,14 +368,14 @@ class Binance:
         if self.order_info.is_futures:
             # Long Entry
             if self.order_info.is_entry and self.order_info.side in ("buy"):
-                total_bal = float(self.client.fetch_balance().get('info').get('totalCrossWalletBalance'))
+                total_bal = float(self.client.fetch_balance().get('total').get('USDT'))
                 cash = total_bal / 4.0 / nMaxLong     # 총 자본을 4분할 + nMaxLong종목 몰빵
                 cash = cash * 100.0 / 70.0  # 청산당할 MDD를 70%로 설정하기 때문에 100/70을 곱함.
                 result = cash / self.order_info.price
                 
             # Short Entry
             if self.order_info.is_entry and self.order_info.side in ("sell"):
-                total_bal = float(self.client.fetch_balance().get('info').get('totalCrossWalletBalance'))
+                total_bal = float(self.client.fetch_balance().get('total').get('USDT'))
                 cash = total_bal / 4.0 / nMaxShort    # 총 자본을 4분할 + nMaxShort종목 몰빵
                 cash = cash * 100.0 / 150.0  # 청산당할 MDD를 150%로 설정하기 때문에 100/150을 곱함.
                 result = cash / self.order_info.price

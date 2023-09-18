@@ -286,15 +286,15 @@ class Bybit:
         # 선물 일 때
         if self.order_info.is_futures:
             # Long Entry
-            if self.order_info.is_entry and self.order_info.side in ("buy"):
-                total_bal = float(self.client.fetch_balance().get('info').get('totalCrossWalletBalance'))
+            if self.order_info.is_entry and self.order_info.side == "buy":
+                total_bal = float(self.client.fetch_balance().get('total').get('USDT'))
                 cash = total_bal / 4.0 / nMaxLong     # 총 자본을 4분할 + nMaxLong종목 몰빵
                 cash = cash * 100.0 / 70.0  # 청산당할 MDD를 70%로 설정하기 때문에 100/70을 곱함.
                 result = cash / self.order_info.price
 
             # Short Entry
-            if self.order_info.is_entry and self.order_info.side in ("sell"):
-                total_bal = float(self.client.fetch_balance().get('info').get('totalCrossWalletBalance'))
+            if self.order_info.is_entry and self.order_info.side == "sell":
+                total_bal = float(self.client.fetch_balance().get('total').get('USDT'))
                 cash = total_bal / 4.0 / nMaxShort    # 총 자본을 4분할 + nMaxShort종목 몰빵
                 cash = cash * 100.0 / 150.0  # 청산당할 MDD를 150%로 설정하기 때문에 100/150을 곱함.
                 result = cash / self.order_info.price
@@ -308,13 +308,13 @@ class Bybit:
         # 현물 일 때
         if self.order_info.is_spot:
             # Buy
-            if self.order_info.side in ("buy"):
+            if self.order_info.side == "buy":
                 free_quote = self.get_balance_hatiko(self.order_info.quote)
                 cash = free_quote * entryRate
                 result = cash / self.order_info.price
 
             # Sell
-            if self.order_info.side in ("sell"):
+            if self.order_info.side == "sell":
                 free_amount = self.get_balance_hatiko(self.order_info.base)
                 result = free_amount
 
