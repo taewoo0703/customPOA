@@ -1431,9 +1431,9 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                 # 2. 트뷰에서는 청산 시그널로 오기 때문에 진입으로 order_info 수정
                 if order_info.is_futures:
                     order_info.is_entry = True
-                    order_info.is_close = False
-                order_info.is_buy = not order_info.is_buy
-                order_info.is_sell = not order_info.is_sell
+                    order_info.is_close = None
+                order_info.is_buy = None if order_info.is_buy else True
+                order_info.is_sell = None if order_info.is_sell else True
 
                 # 3. 미체결 주문 취소 & 재주문
                 exchange_name = order_info.exchange
