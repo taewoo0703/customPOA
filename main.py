@@ -1047,7 +1047,9 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
 
                         # 진입수량 설정
                         entryRate = hatikoInfo.calcEntryRate(hatikoInfo.nMaxLong, safetyMarginPercent=1) if order_info.is_spot else 0 # entryCash / FreeCash  # 현물에서 사용
+                        log_message(f"entryRate : {entryRate}")
                         total_amount = bot.get_amount_hatiko(symbol, hatikoInfo.nMaxLong, hatikoInfo.nMaxShort, entryRate)
+                        log_message(f"total_amount : {total_amount}")
                         market = bot.client.market(symbol)
                         max_amount = market["limits"]["amount"]["max"] # 지정가 주문 최대 코인개수  # float
                         min_amount = market["limits"]["amount"]["min"] # 지정가 주문 최소 코인개수  # float
@@ -1188,12 +1190,8 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                                             list(hatikoInfo.nearShort1_dic) + list(hatikoInfo.nearShort2_dic) + list(hatikoInfo.nearShort3_dic) + list(hatikoInfo.nearShort4_dic)):
                     return {"result" : "ignore"}
 
-                # 2. 거래소 이름 확인
+                # 2. 미체결 주문 취소
                 exchange_name = order_info.exchange
-                if exchange_name != "BINANCE":    # Binance Only
-                    return {"result" : "ignore"}
-
-                # 3. 미체결 주문 취소
                 bot = get_bot(exchange_name, order_info.kis_number)
                 bot.init_info(order_info)
                 symbol = order_info.unified_symbol
@@ -1207,7 +1205,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                     background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER")
                     isSendSignalDiscord = True
 
-                # 4. 청산 주문
+                # 3. 청산 주문
                 if order_info.is_close or (bot.order_info.is_spot and bot.order_info.is_sell):
                     #############################
                     ## Close 매매코드
