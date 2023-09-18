@@ -1065,6 +1065,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                             for i in range(int(nGoal - 1)):
                                 entry_amount_list.append(max_amount)
                             remain_amount = float(bot.client.amount_to_precision(symbol, total_amount % max_amount))
+                            log_message(f"remain_amount : {remain_amount}")
                             entry_amount_list.append(remain_amount)
                         
                         # 진입 가격은 order_info로 넘겨받음
@@ -1075,6 +1076,7 @@ def hatikolimitBase(order_info: MarketOrder, background_tasks: BackgroundTasks, 
                     for i in range(int(nGoal - nComplete)):
                         entry_amount = entry_amount_list[nComplete]
                         # order_result = bot.client.create_order(symbol, "limit", side, abs(entry_amount), entry_price)
+                        log_message(f"entry_amount {i} : {entry_amount}")
                         order_result = bot.limit_order(order_info, entry_amount, entry_price)   # 실패 시 재시도는 bot.limit_order 안에서 처리
                         orderID_list.append(order_result["id"])
                         nComplete += 1
