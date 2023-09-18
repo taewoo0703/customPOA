@@ -1462,8 +1462,8 @@ def hatikolimitBase_test(order_info: MarketOrder, background_tasks: BackgroundTa
                             background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER")
 
                     # 재주문
-                    # order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
-                    order_result = bot.limit_order(order_info, amountCanceled, order_info.price)
+                    order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
+                    # order_result = bot.limit_order(order_info, amountCanceled, order_info.price)
                     orderID_list_old.remove(orderID)
                     orderID_list.append(order_result["id"])
 
