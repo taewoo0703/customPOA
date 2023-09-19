@@ -640,35 +640,9 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                 # 해당 종목이 nearLong1_list에 존재하는지 확인 -> 존재 시, 청산 주문 & 미체결 주문 취소 -> 성공 시, 존재하는 모든 리스트에서 제거
                 
                 # 0. near_ignore_list 초기화
-                removeItemFromMultipleListsAndLogs(order_info.base, lambda item: log_message(f"{item} nearLong1 무시 해제"), 
-                                                        hatikoInfo.Long1_list, hatikoInfo.Long2_list, hatikoInfo.Long3_list, hatikoInfo.Long4_list,
-                                                        hatikoInfo.Short1_list, hatikoInfo.Short2_list, hatikoInfo.Short3_list, hatikoInfo.Short4_list)
-
-                # # 0. near_ignore_list 초기화
-                # if order_info.base in hatikoInfo.nearLong1_ignore_list:
-                #     hatikoInfo.nearLong1_ignore_list.remove(order_info.base)
-                #     log_message(f"{order_info.base} nearLong1 무시 해제")
-                # if order_info.base in hatikoInfo.nearLong2_ignore_list:
-                #     hatikoInfo.nearLong2_ignore_list.remove(order_info.base)
-                #     log_message(f"{order_info.base} nearLong2 무시 해제")
-                # if order_info.base in hatikoInfo.nearLong3_ignore_list:
-                #     hatikoInfo.nearLong3_ignore_list.remove(order_info.base)
-                #     log_message(f"{order_info.base} nearLong3 무시 해제")
-                # if order_info.base in hatikoInfo.nearLong4_ignore_list:
-                #     hatikoInfo.nearLong4_ignore_list.remove(order_info.base)
-                #     log_message(f"{order_info.base} nearLong4 무시 해제")
-                # if order_info.base in hatikoInfo.nearShort1_ignore_list:
-                #     hatikoInfo.nearShort1_ignore_list.remove(order_info.base)
-                #     log_message(f"{order_info.base} nearShort1 무시 해제")
-                # if order_info.base in hatikoInfo.nearShort2_ignore_list:
-                #     hatikoInfo.nearShort2_ignore_list.remove(order_info.base)
-                #     log_message(f"{order_info.base} nearShort2 무시 해제")
-                # if order_info.base in hatikoInfo.nearShort3_ignore_list:
-                #     hatikoInfo.nearShort3_ignore_list.remove(order_info.base)
-                #     log_message(f"{order_info.base} nearShort3 무시 해제")
-                # if order_info.base in hatikoInfo.nearShort4_ignore_list:
-                #     hatikoInfo.nearShort4_ignore_list.remove(order_info.base)
-                #     log_message(f"{order_info.base} nearShort4 무시 해제")
+                removeItemFromMultipleListsAndLogs(order_info.base, lambda item: log_message(f"{item} 무시 해제"), 
+                                                   hatikoInfo.nearLong1_ignore_list, hatikoInfo.nearLong2_ignore_list, hatikoInfo.nearLong3_ignore_list, hatikoInfo.nearLong4_ignore_list,
+                                                   hatikoInfo.nearShort1_ignore_list, hatikoInfo.nearShort2_ignore_list, hatikoInfo.nearShort3_ignore_list, hatikoInfo.nearShort4_ignore_list)
 
                 # 1. 안 산 주문에 대한 종료 무시
                 if order_info.base not in (list(hatikoInfo.nearLong1_dic) + list(hatikoInfo.nearLong2_dic) + list(hatikoInfo.nearLong3_dic) + list(hatikoInfo.nearLong4_dic) + \
@@ -733,39 +707,12 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                             background_tasks.add_task(log, exchange_name, order_result, order_info)
 
                 # # 4. 매매가 전부 종료된 후 매매종목 리스트 업데이트
-                # if order_info.base in hatikoInfo.nearLong1_dic:
-                #     hatikoInfo.nearLong1_dic.pop(order_info.base)
-                # if order_info.base in hatikoInfo.nearLong2_dic:
-                #     hatikoInfo.nearLong2_dic.pop(order_info.base)
-                # if order_info.base in hatikoInfo.nearLong3_dic:
-                #     hatikoInfo.nearLong3_dic.pop(order_info.base)
-                # if order_info.base in hatikoInfo.nearLong4_dic:
-                #     hatikoInfo.nearLong4_dic.pop(order_info.base)
-                # if order_info.base in hatikoInfo.nearShort1_dic:
-                #     hatikoInfo.nearShort1_dic.pop(order_info.base)
-                # if order_info.base in hatikoInfo.nearShort2_dic:
-                #     hatikoInfo.nearShort2_dic.pop(order_info.base)
-                # if order_info.base in hatikoInfo.nearShort3_dic:
-                #     hatikoInfo.nearShort3_dic.pop(order_info.base)
-                # if order_info.base in hatikoInfo.nearShort4_dic:
-                #     hatikoInfo.nearShort4_dic.pop(order_info.base)
-
-                # if order_info.base in hatikoInfo.Long1_list:
-                #     hatikoInfo.Long1_list.remove(order_info.base)
-                # if order_info.base in hatikoInfo.Long2_list:
-                #     hatikoInfo.Long2_list.remove(order_info.base)
-                # if order_info.base in hatikoInfo.Long3_list:
-                #     hatikoInfo.Long3_list.remove(order_info.base)
-                # if order_info.base in hatikoInfo.Long4_list:
-                #     hatikoInfo.Long4_list.remove(order_info.base)
-                # if order_info.base in hatikoInfo.Short1_list:
-                
                 removeItemFromMultipleDicts(order_info.base,
-                                                hatikoInfo.nearLong1_dic, hatikoInfo.nearLong2_dic, hatikoInfo.nearLong3_dic, hatikoInfo.nearLong4_dic,
-                                                hatikoInfo.nearShort1_dic, hatikoInfo.nearShort2_dic, hatikoInfo.nearShort3_dic, hatikoInfo.nearShort4_dic)
+                                            hatikoInfo.nearLong1_dic, hatikoInfo.nearLong2_dic, hatikoInfo.nearLong3_dic, hatikoInfo.nearLong4_dic,
+                                            hatikoInfo.nearShort1_dic, hatikoInfo.nearShort2_dic, hatikoInfo.nearShort3_dic, hatikoInfo.nearShort4_dic)
                 removeItemFromMultipleLists(order_info.base,
-                                                hatikoInfo.Long1_list, hatikoInfo.Long2_list, hatikoInfo.Long3_list, hatikoInfo.Long4_list,
-                                                hatikoInfo.Short1_list, hatikoInfo.Short2_list, hatikoInfo.Short3_list, hatikoInfo.Short4_list)
+                                            hatikoInfo.Long1_list, hatikoInfo.Long2_list, hatikoInfo.Long3_list, hatikoInfo.Long4_list,
+                                            hatikoInfo.Short1_list, hatikoInfo.Short2_list, hatikoInfo.Short3_list, hatikoInfo.Short4_list)
 
             elif order_info.order_name in HatikoInfo.ignoreSignal_list:
                 return {"result" : "ignore"}
