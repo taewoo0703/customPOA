@@ -356,16 +356,17 @@ async def orderinfo(order_info: MarketOrder, background_tasks: BackgroundTasks):
 
 #region ############################### Hatiko ###############################
 
+
+
 #region 각 거래소별 HatikoInfo
-HI_Binance_Spot     = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0) 
+HI_Binance_Spot     = HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0) 
 HI_Binance_Future   = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0)
-HI_OKX_Spot         = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0)
+HI_OKX_Spot         = HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0)
 HI_OKX_Future       = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0)
-HI_Bitget_Spot      = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0)
+HI_Bitget_Spot      = HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0)
 HI_Bitget_Future    = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0)
-HI_Bybit_Spot       = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0)
+HI_Bybit_Spot       = HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0)
 HI_Bybit_Future     = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0)
-#endregion 각 거래소별 HatikoInfo
 
 hatikoInfoObjects = {
     "binance_spot": HI_Binance_Spot,
@@ -378,6 +379,11 @@ hatikoInfoObjects = {
     "bybit_future": HI_Bybit_Future,
 }
 
+#endregion 각 거래소별 HatikoInfo
+
+
+
+#region HatikoInfo 관련 함수
 # HatikoInfo 관련 메모리 모니터
 @app.get("/hatikoinfo/{exchange}/{market_type}")
 async def get_hatikoinfo(exchange: str, market_type: str):
@@ -410,8 +416,83 @@ async def set_hatikoinfo(exchange: str, market_type: str, variable: str, value: 
         return f"Set {variable} : {value}"
     else:
         return "Invalid exchange."
+#endregion HatikoInfo 관련 함수
 
-# 주문용 웹훅 주소
+
+
+#region hatikoBase 관련 함수
+def updateOrderInfo(order_info: MarketOrder, amount: float=None, percent: float=None, price: float=None, 
+                    side=None, is_entry: bool=None, is_close: bool=None, is_buy: bool=None, is_sell: bool=None,
+                    leverage: int=None):
+    """
+    customPOA는 order_info의 amount, percent, price에 구애받지 않고 거래하는 경우가 많다.
+    이런 경우 log와 실매매간의 괴리가 있을 수 있으며, 경우에 따라 log가 출력되지 않는다.
+    이를 해결하기 위해 log를 찍기 전에 이 메소드를 사용하여 log 출력을 보장한다.
+    """
+    if amount is not None:
+        order_info.amount = amount
+    if percent is not None:
+        order_info.percent = percent
+    if price is not None:
+        order_info.price = price
+    if side is not None:
+        order_info.side = side
+    if is_entry is not None:
+        order_info.is_entry = is_entry
+    if is_close is not None:
+        order_info.is_close = is_close
+    if is_buy is not None:
+        order_info.is_buy = is_buy
+    if is_sell is not None:
+        order_info.is_sell = is_sell
+    if leverage is not None:
+        order_info.leverage = leverage
+
+def getMinMaxQty(bot, order_info: MarketOrder) -> (float, float):
+    """
+    주문 시 최대, 최소 수량을 구하는 방법이 거래소마다 다름.
+    max_amount : 지정가 주문 최대 코인개수 -> 100,000 달러를 기준으로 할까? -> 거래소에서 주는 값과 비교하여 높은 값으로 선정
+    min_amount : 지정가 주문 최소 코인개수 -> 10 달러를 기준으로 한다! -> 거래소에서 주는 값과 비교하여 높은 값으로 선정
+    return (최대수량, 최소수량)
+    """
+    price = order_info.price
+    max_cash = 100000   # 100,000달러
+    min_cash = 10       # 10달러
+    max_amount = max_cash / price
+    min_amount = min_cash / price
+
+    market = bot.client.market(order_info.unified_symbol)
+    if order_info.exchange in "BINANCE":
+        max_amount = market["limits"]["amount"]["max"] if market["limits"]["amount"]["max"] > max_amount else max_amount
+        min_amount = market["limits"]["amount"]["min"] if market["limits"]["amount"]["min"] > min_amount else min_amount
+    elif order_info.exchange == "BYBIT":
+        max_amount = market["limits"]["amount"]["max"] if market["limits"]["amount"]["max"] > max_amount else max_amount
+        min_amount = market["limits"]["amount"]["min"] if market["limits"]["amount"]["min"] > min_amount else min_amount
+    elif order_info.exchange == "BITGET":
+        max_amount = max_amount # bitget은 최대수량이 없음
+        min_amount = min_amount # bitget은 최소수량이 없음
+    elif order_info.exchange == "OKX":
+        max_amount = float(market["info"]["maxLmtSz"]) if float(market["info"]["maxLmtSz"]) > max_amount else max_amount
+        min_amount = float(market["info"]["minSz"]) if float(market["info"]["minSz"]) > min_amount else min_amount
+    
+    return max_amount, min_amount
+            
+def removeItemFromMultipleDicts(item, *dicts):
+    for dic in dicts:
+        if item in dic:
+            dic.pop(item)
+
+def removeItemFromMultipleLists(item, *lists) -> bool:
+    for _list in lists:
+        if item in _list:
+            _list.remove(item)
+            return True
+    return False
+#endregion hatikoBase 관련 함수
+
+
+
+# 실매매용 웹훅URL
 @ app.post("/hatiko")
 @ app.post("/")
 async def hatiko(order_info: MarketOrder, background_tasks: BackgroundTasks):
@@ -434,9 +515,6 @@ async def hatiko(order_info: MarketOrder, background_tasks: BackgroundTasks):
     
     if hatikoInfo:
         hatikoBase(order_info, background_tasks, hatikoInfo)
-
-# Hatiko 봇 에러 시 재진입 횟수
-nMaxTry = 5
 
 def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatikoInfo: HatikoInfo):
     """
@@ -461,11 +539,11 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
     4. 청산 시그널 수신
     해당 종목이 nearLong1_list에 존재하는지 확인 -> 존재 시, 청산 주문 -> 성공 시, 존재하는 모든 리스트에서 제거
     """
-    global nMaxTry
-
+    
     # 초기화 단계
     order_result = None
-    nGoal = 0
+    nMaxTry = 5                # 주문 재시도 횟수
+    nGoal = 0   
     nComplete = 0
     isSettingFinish = False     # 매매전 ccxt 세팅 flag 
     orderID_list = []           # 오더id 리스트
@@ -736,67 +814,7 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
         finally:
             pass
 
-def updateOrderInfo(order_info: MarketOrder, amount: float=None, percent: float=None, price: float=None, 
-                    side=None, is_entry: bool=None, is_close: bool=None, is_buy: bool=None, is_sell: bool=None,
-                    leverage: int=None):
-    """
-    customPOA는 order_info의 amount, percent, price에 구애받지 않고 거래하는 경우가 많다.
-    이런 경우 log와 실매매간의 괴리가 있을 수 있으며, 경우에 따라 log가 출력되지 않는다.
-    이를 해결하기 위해 log를 찍기 전에 이 메소드를 사용하여 log 출력을 보장한다.
-    """
-    if amount is not None:
-        order_info.amount = amount
-    if percent is not None:
-        order_info.percent = percent
-    if price is not None:
-        order_info.price = price
-    if side is not None:
-        order_info.side = side
-    if is_entry is not None:
-        order_info.is_entry = is_entry
-    if is_close is not None:
-        order_info.is_close = is_close
-    if is_buy is not None:
-        order_info.is_buy = is_buy
-    if is_sell is not None:
-        order_info.is_sell = is_sell
-    if leverage is not None:
-        order_info.leverage = leverage
 
-def getMinMaxQty(bot, order_info: MarketOrder) -> (float, float):
-    """
-    주문 시 최대, 최소 수량을 구하는 방법이 거래소마다 다름.
-    max_amount : 지정가 주문 최대 코인개수
-    min_amount : 지정가 주문 최소 코인개수
-    return (최대수량, 최소수량)
-    """
-    market = bot.client.market(order_info.unified_symbol)
-    if order_info.exchange in "BINANCE":
-        max_amount = market["limits"]["amount"]["max"]
-        min_amount = market["limits"]["amount"]["min"]
-    elif order_info.exchange == "BYBIT":
-        max_amount = market["limits"]["amount"]["max"] 
-        min_amount = market["limits"]["amount"]["min"] 
-    elif order_info.exchange == "BITGET":
-        max_amount = 100000000000000000000000000000     if market["limits"]["amount"]["max"] in (0, None) else market["limits"]["amount"]["max"]
-        min_amount = market["precision"]["amount"]*10   if market["limits"]["amount"]["min"] in (0, None) else market["limits"]["amount"]["min"]
-    elif order_info.exchange == "OKX":
-        max_amount = float(market["info"]["maxLmtSz"])
-        min_amount = float(market["info"]["minSz"])
-    
-    return max_amount, min_amount
-            
-def removeItemFromMultipleDicts(item, *dicts):
-    for dic in dicts:
-        if item in dic:
-            dic.pop(item)
-
-def removeItemFromMultipleLists(item, *lists) -> bool:
-    for _list in lists:
-        if item in _list:
-            _list.remove(item)
-            return True
-    return False
 
 #endregion ############################### Hatiko ###############################
 
