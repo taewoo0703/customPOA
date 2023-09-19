@@ -356,14 +356,14 @@ class HatikoInfo:
                         "Short1", "Short2", "Short3", "Short4"]
     nextSignal_list = ["NextCandle_L1", "NextCandle_L2", "NextCandle_L3", "NextCandle_L4",
                        "NextCandle_S1", "NextCandle_S2", "NextCandle_S3", "NextCandle_S4"]
-    nextCloseSignal_list = ["NextCandle_LC", "NextCandle_SC"]
+    nextCloseSignal_list = ["NextCandle_LF", "NextCandle_SF"]
     closeSignal_list = ["close Longs on open", "close Shorts on open",
                         "TakeProfit_nearL1", "TakeProfit_nearS1"]
     ignoreSignal_list = ["TakeProfit_nearL2", "TakeProfit_nearL3", "TakeProfit_nearL4",
                          "TakeProfit_nearS2", "TakeProfit_nearS3", "TakeProfit_nearS4",
                          "TakeProfit_L1", "TakeProfit_L2", "TakeProfit_L3", "TakeProfit_L4",
                          "TakeProfit_L1", "TakeProfit_L2", "TakeProfit_L3", "TakeProfit_L4",
-                         "Long_Flag", "Short_Flag"]
+                         "Long_Flag", "Short_Flag", "Long_Flag_Cancel", "Short_Flag_Cancel"]
     
     def __init__(self, nMaxLong=2, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0):
         # 종목 개수 관리

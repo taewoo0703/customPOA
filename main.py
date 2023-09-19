@@ -714,13 +714,13 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
 
             elif order_info.order_name in HatikoInfo.nextCloseSignal_list:
                 # NextCandle Close 시그널 처리
-                # 예시) NextCandle_LC 시그널 수신
+                # 예시) NextCandle_LF 시그널 수신
                 # 해당 종목이 Entry_list에 존재하는지 확인 -> 미체결 청산주문 체크 -> 미체결 주문 취소 후 모든 보유수량으로 청산주문 -> orderId_list에 추가
                 
                 # 1. Entry_list에 존재하는지 확인
-                if order_info.order_name == "NextCandle_LC" and order_info.base not in (hatikoInfo.Long1_list + hatikoInfo.Long2_list + hatikoInfo.Long3_list + hatikoInfo.Long4_list):
+                if order_info.order_name == "NextCandle_LF" and order_info.base not in (hatikoInfo.Long1_list + hatikoInfo.Long2_list + hatikoInfo.Long3_list + hatikoInfo.Long4_list):
                     return {"result" : "ignore"}
-                if order_info.order_name == "NextCandle_SC" and order_info.base not in (hatikoInfo.Short1_list + hatikoInfo.Short2_list + hatikoInfo.Short3_list + hatikoInfo.Short4_list):
+                if order_info.order_name == "NextCandle_SF" and order_info.base not in (hatikoInfo.Short1_list + hatikoInfo.Short2_list + hatikoInfo.Short3_list + hatikoInfo.Short4_list):
                     return {"result" : "ignore"}
 
                 # 2. 미체결 청산주문 취소
@@ -730,7 +730,7 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                 symbol = order_info.unified_symbol
                 open_orders = bot.client.fetch_open_orders(symbol)
                 for open_order in open_orders:
-                    if (open_order["side"] == "sell" and order_info.order_name == "NextCandle_LC") or (open_order["side"] == "buy" and order_info.order_name == "NextCandle_SC"):
+                    if (open_order["side"] == "sell" and order_info.order_name == "NextCandle_LF") or (open_order["side"] == "buy" and order_info.order_name == "NextCandle_SF"):
                         bot.client.cancel_order(open_order["id"], symbol)
                 isCancelSuccess = True
 
