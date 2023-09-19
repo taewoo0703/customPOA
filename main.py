@@ -399,8 +399,8 @@ async def reset_hatikoinfo(exchange: str, productType: str):
         return {"error": "해당 거래소 또는 상품 유형의 HatikoInfo 객체를 찾을 수 없습니다."}
 
 # set nMax, nIgnore
-@app.get("/set/{variable}/{value}/{exchange}/{market_type}")
-async def set_hatikoinfo(variable: str, value: int, exchange: str, market_type: str):
+@app.get("/set_hatikoinfo/{exchange}/{market_type}/{variable}/{value}")
+async def set_hatikoinfo(exchange: str, market_type: str, variable: str, value: int):
     global hatikoInfoObjects
     if variable not in ("nmax_long", "nmax_short", "nignore_long", "nignore_short"):
         return "Invalid variable."
@@ -837,11 +837,6 @@ def getMinMaxQty(bot, order_info: MarketOrder) -> (float, float):
         min_amount = float(market["info"]["minSz"])
     
     return max_amount, min_amount
-
-# def removeItemIfExistsAndLog(container, item, log_message):
-#     if item in container:
-#         container.remove(item)
-#         log_message(item)
 
 def removeItemFromMultipleListsAndLogs(item, log_func, *lists):
     for _list in lists:
