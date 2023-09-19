@@ -367,6 +367,26 @@ HI_Bybit_Spot       = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=0, nIgnore
 HI_Bybit_Future     = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0)
 #endregion 각 거래소별 HatikoInfo
 
+hatikoInfoObjects = {
+    "binance_spot": HI_Binance_Spot,
+    "binance_future": HI_Binance_Future,
+    "okx_spot": HI_OKX_Spot,
+    "okx_future": HI_OKX_Future,
+    "bitget_spot": HI_Bitget_Spot,
+    "bitget_future": HI_Bitget_Future,
+    "bybit_spot": HI_Bybit_Spot,
+    "bybit_future": HI_Bybit_Future,
+}
+
+@app.get("/hatikoinfo/{exchange}/{market_type}")
+async def get_hatikoinfo(exchange: str, market_type: str):
+    hatikoInfo = hatikoInfoObjects.get(f"{exchange}_{market_type}")
+    if hatikoInfo:
+        return hatikoInfo.getHatikoInfo()
+    else:
+        return {"error": "해당 거래소 또는 상품 유형의 정보를 찾을 수 없습니다."}
+
+
 #region HatikoInfo 관련 메모리 모니터
 @ app.get("/hatikoinfo_binance_spot")
 async def hatikoinfo_binance_spot():
@@ -403,19 +423,15 @@ async def hatikoinfo_bitget_future():
     return HI_Bitget_Future.getHatikoInfo()
 #endregion Hatiko Limit 관련 메모리 모니터
 
-#region HatikoInfo 리셋
-@app.get("/reset_hatikoinfo")
-async def reset_hatikoinfo():
-    global HI_Binance_Future, HI_Binance_Spot, HI_Bitget_Future, HI_Bitget_Spot, HI_Bybit_Future, HI_Bybit_Spot, HI_OKX_Future, HI_OKX_Spot
-    HI_Binance_Spot.resetHatikoInfo()
-    HI_Binance_Future.resetHatikoInfo()
-    HI_Bitget_Spot.resetHatikoInfo()
-    HI_Bitget_Future.resetHatikoInfo()
-    HI_Bybit_Spot.resetHatikoInfo()
-    HI_Bybit_Future.resetHatikoInfo()
-    HI_OKX_Spot.resetHatikoInfo()
-    HI_OKX_Future.resetHatikoInfo()
-    return "Reset HatikoInfo Complete!!!"
+@app.get("/reset_hatikoinfo/{exchange}/{productType}")
+async def reset_hatikoinfo(exchange: str, productType: str):
+    hatikoInfo = hatikoInfoObjects.get(f"{exchange}_{productType}")
+    
+    if hatikoInfo:
+        hatikoInfo.resetHatikoInfo()
+        return "Reset HatikoInfo Complete!!!"
+    else:
+        return {"error": "해당 거래소 또는 상품 유형의 HatikoInfo 객체를 찾을 수 없습니다."}
 
 @app.get("/reset_hatikoinfo_binance_spot")
 async def reset_hatikoinfo_binance_spot():
@@ -465,6 +481,20 @@ async def reset_hatikoinfo_okx_future():
     HI_OKX_Future.resetHatikoInfo()
     return "Reset HatikoInfo Complete!!!"
 #endregion HatikoInfo 리셋
+
+
+# set nMax, nIgnore
+@app.get("/set/{exchange}/{market_type}/{variable}/{value}")
+async def set_hatikoinfo(exchange: str, market_type: str, variable: str, value: int):
+    global hatikoInfoObjects
+    if variable not in ("nmax_long", "nmax_short", "nignore_long", "nignore_short"):
+        return "Invalid variable."
+    hatikoInfo = hatikoInfoObjects.get(f"{exchange}_{market_type}")
+    if hatikoInfo:
+        hatikoInfo.set_n(variable, value)
+        return f"Set {variable} : {value}"
+    else:
+        return "Invalid exchange."
 
 #region add_nMax
 @ app.get("/add_nMaxLong_binance_spot")
@@ -927,26 +957,24 @@ async def subtract_nIgnoreShort_okx_future():
 @ app.post("/")
 async def hatiko(order_info: MarketOrder, background_tasks: BackgroundTasks):
     global HI_Binance_Future, HI_Binance_Spot, HI_Bitget_Future, HI_Bitget_Spot, HI_Bybit_Future, HI_Bybit_Spot, HI_OKX_Future, HI_OKX_Spot
-    if order_info.exchange == "BINANCE":
-        if order_info.is_spot:
-            hatikoBase(order_info, background_tasks, HI_Binance_Spot)
-        elif order_info.is_futures:
-            hatikoBase(order_info, background_tasks, HI_Binance_Future)
-    elif order_info.exchange == "BITGET":
-        if order_info.is_spot:
-            hatikoBase(order_info, background_tasks, HI_Bitget_Spot)
-        elif order_info.is_futures:
-            hatikoBase(order_info, background_tasks, HI_Bitget_Future)
-    elif order_info.exchange == "BYBIT":
-        if order_info.is_spot:
-            hatikoBase(order_info, background_tasks, HI_Bybit_Spot)
-        elif order_info.is_futures:
-            hatikoBase(order_info, background_tasks, HI_Bybit_Future)
-    elif order_info.exchange == "OKX":
-        if order_info.is_spot:
-            hatikoBase(order_info, background_tasks, HI_OKX_Spot)
-        elif order_info.is_futures:
-            hatikoBase(order_info, background_tasks, HI_OKX_Future)
+    
+    exchange = order_info.exchange
+    is_spot = order_info.is_spot
+    hatikoInfo = None
+
+    if exchange == "BINANCE":
+        hatikoInfo = HI_Binance_Spot if is_spot else HI_Binance_Future
+    elif exchange == "BITGET":
+        hatikoInfo = HI_Bitget_Spot if is_spot else HI_Bitget_Future
+    elif exchange == "BYBIT":
+        hatikoInfo = HI_Bybit_Spot if is_spot else HI_Bybit_Future
+    elif exchange == "OKX":
+        hatikoInfo = HI_OKX_Spot if is_spot else HI_OKX_Future
+    else:
+        return "Invalid exchange."
+    
+    if hatikoInfo:
+        hatikoBase(order_info, background_tasks, hatikoInfo)
 
 # Hatiko 봇 에러 시 재진입 횟수
 nMaxTry = 5
@@ -1037,16 +1065,13 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                         max_amount, min_amount = getMinMaxQty(bot, order_info)
                         log_message(f"max_amount : {max_amount}, min_amount : {min_amount}") if LOG else None
 
-                        # Set nGoal
-                        entry_amount_list = []
-                        if (total_amount % max_amount < min_amount):
+                        # Set nGoal and entry_amount_list
+                        if total_amount % max_amount < min_amount:
                             nGoal = total_amount // max_amount
-                            for i in range(int(nGoal)):
-                                entry_amount_list.append(max_amount)
+                            entry_amount_list = [max_amount] * int(nGoal)
                         else:
                             nGoal = total_amount // max_amount + 1
-                            for i in range(int(nGoal - 1)):
-                                entry_amount_list.append(max_amount)
+                            entry_amount_list = [max_amount] * int(nGoal - 1)
                             remain_amount = float(bot.client.amount_to_precision(symbol, total_amount % max_amount))
                             log_message(f"remain_amount : {remain_amount}") if LOG else None
                             entry_amount_list.append(remain_amount)
@@ -1156,30 +1181,35 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                 # 해당 종목이 nearLong1_list에 존재하는지 확인 -> 존재 시, 청산 주문 & 미체결 주문 취소 -> 성공 시, 존재하는 모든 리스트에서 제거
                 
                 # 0. near_ignore_list 초기화
-                if order_info.base in hatikoInfo.nearLong1_ignore_list:
-                    hatikoInfo.nearLong1_ignore_list.remove(order_info.base)
-                    log_message(f"{order_info.base} nearLong1 무시 해제")
-                if order_info.base in hatikoInfo.nearLong2_ignore_list:
-                    hatikoInfo.nearLong2_ignore_list.remove(order_info.base)
-                    log_message(f"{order_info.base} nearLong2 무시 해제")
-                if order_info.base in hatikoInfo.nearLong3_ignore_list:
-                    hatikoInfo.nearLong3_ignore_list.remove(order_info.base)
-                    log_message(f"{order_info.base} nearLong3 무시 해제")
-                if order_info.base in hatikoInfo.nearLong4_ignore_list:
-                    hatikoInfo.nearLong4_ignore_list.remove(order_info.base)
-                    log_message(f"{order_info.base} nearLong4 무시 해제")
-                if order_info.base in hatikoInfo.nearShort1_ignore_list:
-                    hatikoInfo.nearShort1_ignore_list.remove(order_info.base)
-                    log_message(f"{order_info.base} nearShort1 무시 해제")
-                if order_info.base in hatikoInfo.nearShort2_ignore_list:
-                    hatikoInfo.nearShort2_ignore_list.remove(order_info.base)
-                    log_message(f"{order_info.base} nearShort2 무시 해제")
-                if order_info.base in hatikoInfo.nearShort3_ignore_list:
-                    hatikoInfo.nearShort3_ignore_list.remove(order_info.base)
-                    log_message(f"{order_info.base} nearShort3 무시 해제")
-                if order_info.base in hatikoInfo.nearShort4_ignore_list:
-                    hatikoInfo.nearShort4_ignore_list.remove(order_info.base)
-                    log_message(f"{order_info.base} nearShort4 무시 해제")
+                removeItemFromMultipleListsAndLogs(order_info.base, lambda item: log_message(f"{item} nearLong1 무시 해제"), 
+                                                        hatikoInfo.Long1_list, hatikoInfo.Long2_list, hatikoInfo.Long3_list, hatikoInfo.Long4_list,
+                                                        hatikoInfo.Short1_list, hatikoInfo.Short2_list, hatikoInfo.Short3_list, hatikoInfo.Short4_list)
+
+                # # 0. near_ignore_list 초기화
+                # if order_info.base in hatikoInfo.nearLong1_ignore_list:
+                #     hatikoInfo.nearLong1_ignore_list.remove(order_info.base)
+                #     log_message(f"{order_info.base} nearLong1 무시 해제")
+                # if order_info.base in hatikoInfo.nearLong2_ignore_list:
+                #     hatikoInfo.nearLong2_ignore_list.remove(order_info.base)
+                #     log_message(f"{order_info.base} nearLong2 무시 해제")
+                # if order_info.base in hatikoInfo.nearLong3_ignore_list:
+                #     hatikoInfo.nearLong3_ignore_list.remove(order_info.base)
+                #     log_message(f"{order_info.base} nearLong3 무시 해제")
+                # if order_info.base in hatikoInfo.nearLong4_ignore_list:
+                #     hatikoInfo.nearLong4_ignore_list.remove(order_info.base)
+                #     log_message(f"{order_info.base} nearLong4 무시 해제")
+                # if order_info.base in hatikoInfo.nearShort1_ignore_list:
+                #     hatikoInfo.nearShort1_ignore_list.remove(order_info.base)
+                #     log_message(f"{order_info.base} nearShort1 무시 해제")
+                # if order_info.base in hatikoInfo.nearShort2_ignore_list:
+                #     hatikoInfo.nearShort2_ignore_list.remove(order_info.base)
+                #     log_message(f"{order_info.base} nearShort2 무시 해제")
+                # if order_info.base in hatikoInfo.nearShort3_ignore_list:
+                #     hatikoInfo.nearShort3_ignore_list.remove(order_info.base)
+                #     log_message(f"{order_info.base} nearShort3 무시 해제")
+                # if order_info.base in hatikoInfo.nearShort4_ignore_list:
+                #     hatikoInfo.nearShort4_ignore_list.remove(order_info.base)
+                #     log_message(f"{order_info.base} nearShort4 무시 해제")
 
                 # 1. 안 산 주문에 대한 종료 무시
                 if order_info.base not in (list(hatikoInfo.nearLong1_dic) + list(hatikoInfo.nearLong2_dic) + list(hatikoInfo.nearLong3_dic) + list(hatikoInfo.nearLong4_dic) + \
@@ -1213,16 +1243,14 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                         log_message(f"total_amount : {total_amount}") if LOG else None
                         max_amount, min_amount = getMinMaxQty(bot, order_info)
                         log_message(f"max_amount : {max_amount}, min_amount : {min_amount}") if LOG else None
-                        # Set nGoal
-                        close_amount_list = []
-                        if (total_amount % max_amount < min_amount):
+
+                        # Set nGoal and entry_amount_list
+                        if total_amount % max_amount < min_amount:
                             nGoal = total_amount // max_amount
-                            for i in range(int(nGoal)):
-                                close_amount_list.append(max_amount)
+                            close_amount_list = [max_amount] * int(nGoal)
                         else:
                             nGoal = total_amount // max_amount + 1
-                            for i in range(int(nGoal - 1)):
-                                close_amount_list.append(max_amount)
+                            close_amount_list = [max_amount] * int(nGoal - 1)
                             remain_amount = float(bot.client.amount_to_precision(symbol, total_amount % max_amount))
                             log_message(f"remain_amount : {remain_amount}") if LOG else None
                             close_amount_list.append(remain_amount)
@@ -1245,40 +1273,40 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                             updateOrderInfo(order_info, amount=close_amount)
                             background_tasks.add_task(log, exchange_name, order_result, order_info)
 
-                # 4. 매매가 전부 종료된 후 매매종목 리스트 업데이트
-                if order_info.base in hatikoInfo.nearLong1_dic:
-                    hatikoInfo.nearLong1_dic.pop(order_info.base)
-                if order_info.base in hatikoInfo.nearLong2_dic:
-                    hatikoInfo.nearLong2_dic.pop(order_info.base)
-                if order_info.base in hatikoInfo.nearLong3_dic:
-                    hatikoInfo.nearLong3_dic.pop(order_info.base)
-                if order_info.base in hatikoInfo.nearLong4_dic:
-                    hatikoInfo.nearLong4_dic.pop(order_info.base)
-                if order_info.base in hatikoInfo.nearShort1_dic:
-                    hatikoInfo.nearShort1_dic.pop(order_info.base)
-                if order_info.base in hatikoInfo.nearShort2_dic:
-                    hatikoInfo.nearShort2_dic.pop(order_info.base)
-                if order_info.base in hatikoInfo.nearShort3_dic:
-                    hatikoInfo.nearShort3_dic.pop(order_info.base)
-                if order_info.base in hatikoInfo.nearShort4_dic:
-                    hatikoInfo.nearShort4_dic.pop(order_info.base)
+                # # 4. 매매가 전부 종료된 후 매매종목 리스트 업데이트
+                # if order_info.base in hatikoInfo.nearLong1_dic:
+                #     hatikoInfo.nearLong1_dic.pop(order_info.base)
+                # if order_info.base in hatikoInfo.nearLong2_dic:
+                #     hatikoInfo.nearLong2_dic.pop(order_info.base)
+                # if order_info.base in hatikoInfo.nearLong3_dic:
+                #     hatikoInfo.nearLong3_dic.pop(order_info.base)
+                # if order_info.base in hatikoInfo.nearLong4_dic:
+                #     hatikoInfo.nearLong4_dic.pop(order_info.base)
+                # if order_info.base in hatikoInfo.nearShort1_dic:
+                #     hatikoInfo.nearShort1_dic.pop(order_info.base)
+                # if order_info.base in hatikoInfo.nearShort2_dic:
+                #     hatikoInfo.nearShort2_dic.pop(order_info.base)
+                # if order_info.base in hatikoInfo.nearShort3_dic:
+                #     hatikoInfo.nearShort3_dic.pop(order_info.base)
+                # if order_info.base in hatikoInfo.nearShort4_dic:
+                #     hatikoInfo.nearShort4_dic.pop(order_info.base)
 
-                if order_info.base in hatikoInfo.Long1_list:
-                    hatikoInfo.Long1_list.remove(order_info.base)
-                if order_info.base in hatikoInfo.Long2_list:
-                    hatikoInfo.Long2_list.remove(order_info.base)
-                if order_info.base in hatikoInfo.Long3_list:
-                    hatikoInfo.Long3_list.remove(order_info.base)
-                if order_info.base in hatikoInfo.Long4_list:
-                    hatikoInfo.Long4_list.remove(order_info.base)
-                if order_info.base in hatikoInfo.Short1_list:
-                    hatikoInfo.Short1_list.remove(order_info.base)
-                if order_info.base in hatikoInfo.Short2_list:
-                    hatikoInfo.Short2_list.remove(order_info.base)
-                if order_info.base in hatikoInfo.Short3_list:
-                    hatikoInfo.Short3_list.remove(order_info.base)
-                if order_info.base in hatikoInfo.Short4_list:
-                    hatikoInfo.Short4_list.remove(order_info.base)
+                # if order_info.base in hatikoInfo.Long1_list:
+                #     hatikoInfo.Long1_list.remove(order_info.base)
+                # if order_info.base in hatikoInfo.Long2_list:
+                #     hatikoInfo.Long2_list.remove(order_info.base)
+                # if order_info.base in hatikoInfo.Long3_list:
+                #     hatikoInfo.Long3_list.remove(order_info.base)
+                # if order_info.base in hatikoInfo.Long4_list:
+                #     hatikoInfo.Long4_list.remove(order_info.base)
+                # if order_info.base in hatikoInfo.Short1_list:
+                
+                removeItemFromMultipleDicts(order_info.base,
+                                                hatikoInfo.nearLong1_dic, hatikoInfo.nearLong2_dic, hatikoInfo.nearLong3_dic, hatikoInfo.nearLong4_dic,
+                                                hatikoInfo.nearShort1_dic, hatikoInfo.nearShort2_dic, hatikoInfo.nearShort3_dic, hatikoInfo.nearShort4_dic)
+                removeItemFromMultipleLists(order_info.base,
+                                                hatikoInfo.Long1_list, hatikoInfo.Long2_list, hatikoInfo.Long3_list, hatikoInfo.Long4_list,
+                                                hatikoInfo.Short1_list, hatikoInfo.Short2_list, hatikoInfo.Short3_list, hatikoInfo.Short4_list)
 
             elif order_info.order_name in HatikoInfo.ignoreSignal_list:
                 return {"result" : "ignore"}
@@ -1351,9 +1379,26 @@ def getMinMaxQty(bot, order_info: MarketOrder) -> (float, float):
     
     return max_amount, min_amount
 
+# def removeItemIfExistsAndLog(container, item, log_message):
+#     if item in container:
+#         container.remove(item)
+#         log_message(item)
 
+def removeItemFromMultipleListsAndLogs(item, log_func, *lists):
+    for _list in lists:
+        if item in _list:
+            _list.remove(item)
+            log_func(item)
 
+def removeItemFromMultipleDicts(item, *dicts):
+    for dic in dicts:
+        if item in dic:
+            dic.pop(item)
 
+def removeItemFromMultipleLists(item, *lists):
+    for _list in lists:
+        if item in _list:
+            _list.remove(item)
 
 #endregion ############################### Hatiko ###############################
 
