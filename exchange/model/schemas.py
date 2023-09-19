@@ -536,6 +536,21 @@ class HatikoInfo:
 
         return "Reset HatikoInfo Complete!!!"
     
+    def set_n(self, variable: str, value: int):
+        if variable == "nmax_long":
+            self.nMaxLong = value
+        elif variable == "nmax_short":
+            self.nMaxShort = value
+        elif variable == "nignore_long":
+            self.nIgnoreLong = value
+        elif variable == "nignore_short":
+            self.nIgnoreShort = value
+        else:
+            return "Wrong variable name!!!"
+        return "Set " + variable + " to " + str(value) + "!!!"
+    
+
+
     def add_nMaxLong(self):
         self.nMaxLong += 1
         return self.nMaxLong
