@@ -640,9 +640,10 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                 # 해당 종목이 nearLong1_list에 존재하는지 확인 -> 존재 시, 청산 주문 & 미체결 주문 취소 -> 성공 시, 존재하는 모든 리스트에서 제거
                 
                 # 0. near_ignore_list 초기화
-                removeItemFromMultipleListsAndLogs(order_info.base, lambda item: log_message(f"{item} 무시 해제"), 
-                                                   hatikoInfo.nearLong1_ignore_list, hatikoInfo.nearLong2_ignore_list, hatikoInfo.nearLong3_ignore_list, hatikoInfo.nearLong4_ignore_list,
-                                                   hatikoInfo.nearShort1_ignore_list, hatikoInfo.nearShort2_ignore_list, hatikoInfo.nearShort3_ignore_list, hatikoInfo.nearShort4_ignore_list)
+                if removeItemFromMultipleLists(order_info.base,
+                                               hatikoInfo.nearLong1_ignore_list, hatikoInfo.nearLong2_ignore_list, hatikoInfo.nearLong3_ignore_list, hatikoInfo.nearLong4_ignore_list,
+                                               hatikoInfo.nearShort1_ignore_list, hatikoInfo.nearShort2_ignore_list, hatikoInfo.nearShort3_ignore_list, hatikoInfo.nearShort4_ignore_list):
+                    background_tasks.add_task(log_custom_message, order_info, "IGNORE_CANCEL")
 
                 # 1. 안 산 주문에 대한 종료 무시
                 if order_info.base not in (list(hatikoInfo.nearLong1_dic) + list(hatikoInfo.nearLong2_dic) + list(hatikoInfo.nearLong3_dic) + list(hatikoInfo.nearLong4_dic) + \
@@ -784,22 +785,18 @@ def getMinMaxQty(bot, order_info: MarketOrder) -> (float, float):
         min_amount = float(market["info"]["minSz"])
     
     return max_amount, min_amount
-
-def removeItemFromMultipleListsAndLogs(item, log_func, *lists):
-    for _list in lists:
-        if item in _list:
-            _list.remove(item)
-            log_func(item)
-
+            
 def removeItemFromMultipleDicts(item, *dicts):
     for dic in dicts:
         if item in dic:
             dic.pop(item)
 
-def removeItemFromMultipleLists(item, *lists):
+def removeItemFromMultipleLists(item, *lists) -> bool:
     for _list in lists:
         if item in _list:
             _list.remove(item)
+            return True
+    return False
 
 #endregion ############################### Hatiko ###############################
 
