@@ -356,6 +356,7 @@ class HatikoInfo:
                         "Short1", "Short2", "Short3", "Short4"]
     nextSignal_list = ["NextCandle_L1", "NextCandle_L2", "NextCandle_L3", "NextCandle_L4",
                        "NextCandle_S1", "NextCandle_S2", "NextCandle_S3", "NextCandle_S4"]
+    nextCloseSignal_list = ["NextCandle_LC", "NextCandle_SC"]
     closeSignal_list = ["close Longs on open", "close Shorts on open",
                         "TakeProfit_nearL1", "TakeProfit_nearS1"]
     ignoreSignal_list = ["TakeProfit_nearL2", "TakeProfit_nearL3", "TakeProfit_nearL4",
@@ -400,7 +401,12 @@ class HatikoInfo:
         self.nearShort2_ignore_list = []
         self.nearShort3_ignore_list = []
         self.nearShort4_ignore_list = []        
+
+        # 지정가 Hatiko용 closeOrderID 리스트
+        self.closeOrderID_list = []  # 미리청산 기능 사용 시 청산오더id를 저장하는 리스트
     
+    #region match 함수
+
     def matchNearDic(self, order_name):
         """
         order_name에 따라 해당하는 near딕셔너리를 반환
@@ -467,7 +473,10 @@ class HatikoInfo:
         if order_name in ["nearShort4", "Short4", "NextCandle_S4"]:
             return self.nearShort4_ignore_list
     
+    #endregion match 함수
+
     #region request 호출용 함수
+
     def getHatikoInfo(self):
             res = {
                 "nMaxLong" : str(self.nMaxLong),
@@ -534,6 +543,9 @@ class HatikoInfo:
         self.nearShort3_ignore_list = []
         self.nearShort4_ignore_list = []
 
+        # 지정가 Hatiko용 closeOrderID 리스트
+        self.closeOrderID_list = []
+
         return "Reset HatikoInfo Complete!!!"
     
     def set_n(self, variable: str, value: int):
@@ -548,40 +560,6 @@ class HatikoInfo:
         else:
             return "Wrong variable name!!!"
         return "Set " + variable + " to " + str(value) + "!!!"
-    
-
-
-    def add_nMaxLong(self):
-        self.nMaxLong += 1
-        return self.nMaxLong
-    
-    def add_nMaxShort(self):
-        self.nMaxShort += 1
-        return self.nMaxShort
-    
-    def add_nIgnoreLong(self):
-        self.nIgnoreLong += 1
-        return self.nIgnoreLong
-    
-    def add_nIgnoreShort(self):
-        self.nIgnoreShort += 1
-        return self.nIgnoreShort
-
-    def subtract_nMaxLong(self):
-        self.nMaxLong -= 1
-        return self.nMaxLong
-
-    def subtract_nMaxShort(self):
-        self.nMaxShort -= 1
-        return self.nMaxShort
-    
-    def subtract_nIgnoreLong(self):
-        self.nIgnoreLong -= 1
-        return self.nIgnoreLong
-
-    def subtract_nIgnoreShort(self):
-        self.nIgnoreShort -= 1
-        return self.nIgnoreShort
 
     #endregion request 호출용 함수
 
@@ -602,3 +580,4 @@ class HatikoInfo:
         availableCashRate = 1 - safetyMarginPercent / 100
         entryRate = availableCashRate / (nEnvelope * nMax - nNear * availableCashRate)
         return entryRate
+    
