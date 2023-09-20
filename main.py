@@ -404,6 +404,12 @@ async def reset_hatikoinfo(exchange: str, productType: str):
     else:
         return {"error": "해당 거래소 또는 상품 유형의 HatikoInfo 객체를 찾을 수 없습니다."}
 
+@app.get("/reset_hatikoinfo_all")
+async def reset_hatikoinfo_all():
+    for hatikoInfo in hatikoInfoObjects.values():
+        hatikoInfo.resetHatikoInfo()
+    return "Reset HatikoInfo Complete!!!"
+
 # set nMax, nIgnore
 @app.get("/set_hatikoinfo/{exchange}/{market_type}/{variable}/{value}")
 async def set_hatikoinfo(exchange: str, market_type: str, variable: str, value: int):
@@ -416,6 +422,17 @@ async def set_hatikoinfo(exchange: str, market_type: str, variable: str, value: 
         return f"Set {variable} : {value}"
     else:
         return "Invalid exchange."
+    
+# set nMax, nIgnore
+@app.get("/set_hatikoinfo_all/{variable}/{value}")
+async def set_hatikoinfo_all(variable: str, value: int):
+    global hatikoInfoObjects
+    if variable not in ("nmax_long", "nmax_short", "nignore_long", "nignore_short"):
+        return "Invalid variable."
+    for hatikoInfo in hatikoInfoObjects.values():
+        hatikoInfo.set_n(variable, value)
+    return f"Set {variable} : {value}"
+
 #endregion HatikoInfo 관련 함수
 
 
