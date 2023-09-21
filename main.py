@@ -309,6 +309,16 @@ async def hedge(hedge_data: HedgeData, background_tasks: BackgroundTasks):
 import threading
 import time
 
+# Discord 사용 여부
+USE_DISCORD = True
+
+# Discord 변경
+@ app.get("/change_discord")
+async def change_discord():
+    global USE_DISCORD
+    USE_DISCORD = not USE_DISCORD
+    return f"USE_DISCORD : {USE_DISCORD}"
+
 # Thread 사용 여부
 USE_THREAD = False
 
@@ -705,7 +715,7 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                     (order_info.side == "sell" and len(near_ignore_list) < hatikoInfo.nIgnoreShort):
                     if order_info.base not in near_ignore_list:
                         near_ignore_list.append(order_info.base)
-                    background_tasks.add_task(log_custom_message, order_info, "IGNORE")
+                    background_tasks.add_task(log_custom_message, order_info, "IGNORE") if USE_DISCORD else None
                     return {"result" : "ignore"}
 
                 # 1. 종목 최대개수 확인
@@ -767,7 +777,7 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                         updateOrderInfo(order_info, amount=entry_amount)
                         if order_info.is_spot:
                             order_info.leverage = None
-                        background_tasks.add_task(log, exchange_name, order_result, order_info)
+                        background_tasks.add_task(log, exchange_name, order_result, order_info) if USE_DISCORD else None
                     
                 # 4. 매매가 전부 종료되면 near딕셔너리 업데이트
                 near_dic[order_info.base] = orderID_list
@@ -817,7 +827,7 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                     elif order["status"] == "closed":
                         # 트뷰로부터 특정 시그널 손실로 인해 이미 체결된 주문인 경우
                         entry_list.append(order_info.base)
-                        background_tasks.add_task(log_custom_message, order_info, "ORDER_CLOSED")
+                        background_tasks.add_task(log_custom_message, order_info, "ORDER_CLOSED") if USE_DISCORD else None
                         return {"result" : "ignore"}
                     else:
                         resultCancel = bot.client.cancel_order(orderID, symbol)
@@ -828,7 +838,7 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                             amountCanceled = orderAfterCancel["amount"]
                             sideCanceled = orderAfterCancel["side"]
                             # [Debug] 미체결 주문 취소 후 알람 발생
-                            background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER")
+                            background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER") if USE_DISCORD else None
 
                     # 재주문 
                     log_message(f"symbol : {symbol}, sideCanceled : {sideCanceled}, amountCanceled : {amountCanceled}, price : {order_info.price}") if LOG else None
@@ -844,7 +854,7 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                     order_info.is_buy = None if order_info.is_buy else True
                     order_info.is_sell = None if order_info.is_sell else True
                     updateOrderInfo(order_info, amount=amountCanceled, side=sideCanceled)
-                    background_tasks.add_task(log, exchange_name, order_result, order_info)
+                    background_tasks.add_task(log, exchange_name, order_result, order_info) if USE_DISCORD else None
 
                 # 4. near_dic 오더id 업데이트
                 near_dic[order_info.base] = orderID_list
@@ -873,7 +883,7 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
 
                 # 미체결 주문 취소 후 알람 발생
                 if not isSendSignalDiscord and isCancelSuccess:
-                    background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER")
+                    background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER") if USE_DISCORD else None
                     isSendSignalDiscord = True
 
                 # 3. 모든 보유수량으로 청산주문
@@ -917,7 +927,7 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                             orderID_list.append(order_result["id"])
                             nComplete += 1
                             updateOrderInfo(order_info, amount=close_amount)
-                            background_tasks.add_task(log, exchange_name, order_result, order_info)
+                            background_tasks.add_task(log, exchange_name, order_result, order_info) if USE_DISCORD else None
 
                     # 4. 매매가 전부 종료되면 closePrice_dic 업데이트
                     hatikoInfo.closePrice_dic[order_info.base] = close_price
@@ -931,7 +941,7 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                 if removeItemFromMultipleLists(order_info.base,
                                                hatikoInfo.nearLong1_ignore_list, hatikoInfo.nearLong2_ignore_list, hatikoInfo.nearLong3_ignore_list, hatikoInfo.nearLong4_ignore_list,
                                                hatikoInfo.nearShort1_ignore_list, hatikoInfo.nearShort2_ignore_list, hatikoInfo.nearShort3_ignore_list, hatikoInfo.nearShort4_ignore_list):
-                    background_tasks.add_task(log_custom_message, order_info, "IGNORE_CANCEL")
+                    background_tasks.add_task(log_custom_message, order_info, "IGNORE_CANCEL") if USE_DISCORD else None
 
                 # 1. 안 산 주문에 대한 종료 무시
                 if order_info.base not in (list(hatikoInfo.nearLong1_dic) + list(hatikoInfo.nearLong2_dic) + list(hatikoInfo.nearLong3_dic) + list(hatikoInfo.nearLong4_dic) + \
@@ -957,12 +967,12 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
 
                 # 미체결 주문 취소 후 알람 발생
                 if not isSendSignalDiscord and isCancelSuccess:
-                    background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER")
+                    background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER") if USE_DISCORD else None
                     isSendSignalDiscord = True
                 
                 # 미체결 주문 취소한 것도 없고, 새로 청산주문할 것도 없는 경우 알람 발생
                 if not isSendSignalDiscord and not isCancelSuccess and order_info.price != hatikoInfo.closePrice_dic.get(order_info.base):
-                    background_tasks.add_task(log_custom_message, order_info, "CLOSE_ORDER")
+                    background_tasks.add_task(log_custom_message, order_info, "CLOSE_ORDER") if USE_DISCORD else None
                     isSendSignalDiscord = True
 
                 # 3. 청산 주문
