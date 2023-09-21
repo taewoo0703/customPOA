@@ -390,10 +390,12 @@ class Binance:
         if self.order_info.is_spot:
             # Buy
             if self.order_info.side in ("buy"):
-                free_quote = self.get_balance_hatiko(self.order_info.quote)
-                cash = free_quote * entryRate
-                result = cash / self.order_info.price
-            
+                if self.order_info.amount is not None:
+                    result = self.order_info.amount
+                else:
+                    free_quote = self.get_balance_hatiko(self.order_info.quote)
+                    cash = free_quote * entryRate
+                    result = cash / self.order_info.price
             # Sell
             if self.order_info.side in ("sell"):                
                 free_amount = self.get_balance_hatiko(self.order_info.base)
