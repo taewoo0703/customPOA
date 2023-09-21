@@ -402,8 +402,9 @@ class HatikoInfo:
         self.nearShort3_ignore_list = []
         self.nearShort4_ignore_list = []        
 
-        # 지정가 Hatiko용 closeOrderID 리스트
-        self.closeOrderID_list = []  # 미리청산 기능 사용 시 청산오더id를 저장하는 리스트
+        # 지정가 Hatiko용 closePrice 딕셔너리
+        # base(종목명) : closePrice(청산가격)
+        self.closePrice_dic = {} # 미리청산 기능 사용 시 필요
     
     #region match 함수
 
@@ -543,8 +544,9 @@ class HatikoInfo:
         self.nearShort3_ignore_list = []
         self.nearShort4_ignore_list = []
 
-        # 지정가 Hatiko용 closeOrderID 리스트
-        self.closeOrderID_list = []
+        # 지정가 Hatiko용 closePrice 딕셔너리
+        # base(종목명) : closePrice(청산가격)
+        self.closePrice_dic = {} # 미리청산 기능 사용 시 필요
 
         return "Reset HatikoInfo Complete!!!"
     

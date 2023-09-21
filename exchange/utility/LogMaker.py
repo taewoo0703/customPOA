@@ -267,7 +267,7 @@ def log_alert_message(order_info: MarketOrder, result="성공"):
 # by PTW
 ################################################
 
-MESSAGE_TYPE_LITERAL = Literal["RECV_TRADINGVIEW", "ENTRY_SIGNAL", "CANCEL_ORDER", "IGNORE", "IGNORE_CANCEL" "ORDER_CLOSED", "ORDER_NAME_INCORRECT", "RECV_BUT_NO_ORDER"]
+MESSAGE_TYPE_LITERAL = Literal["RECV_TRADINGVIEW", "ENTRY_SIGNAL", "CLOSE_SIGNAL", "CANCEL_ORDER", "IGNORE", "IGNORE_CANCEL" "ORDER_CLOSED", "ORDER_NAME_INCORRECT", "RECV_BUT_NO_ORDER"]
 def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     embed = Embed(  
     title=order_info.order_name,
@@ -280,6 +280,14 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
         embed = Embed(  
             title=order_info.order_name,
             description=f"{order_info.base} 시그널 도착",
+            color=0xFFFFFF,
+        )
+
+    # [Hatiko] close 시그널 발생
+    if msg_type == "CLOSE_SIGNAL":
+        embed = Embed(  
+            title=order_info.order_name,
+            description=f"{order_info.base} 청산 시그널 도착",
             color=0xFFFFFF,
         )
 
