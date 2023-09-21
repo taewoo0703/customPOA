@@ -522,11 +522,15 @@ def removeItemFromMultipleDicts(item, *dicts):
             dic.pop(item)
 
 def removeItemFromMultipleLists(item, *lists) -> bool:
+    is_removed = False
     for _list in lists:
         if item in _list:
             _list.remove(item)
-            return True
-    return False
+            is_removed = True
+    if is_removed:
+        return True
+    else:
+        return False
 
 def market_order_thread_func(order_info: MarketOrder, hatikoInfo: HatikoInfo):
     """
