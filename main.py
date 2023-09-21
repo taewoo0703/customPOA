@@ -29,7 +29,7 @@ import os
 import sys
 from devtools import debug
 
-VERSION = "POA : 0.1.1, Hatiko : 230918"
+VERSION = "POA : 0.1.1, Hatiko : 230922"
 app = FastAPI(default_response_class=ORJSONResponse)
 
 
@@ -310,7 +310,7 @@ import threading
 import time
 
 # Discord 사용 여부
-USE_DISCORD = True
+USE_DISCORD = False
 
 # Discord 변경
 @ app.get("/change_discord")
@@ -827,7 +827,7 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                     elif order["status"] == "closed":
                         # 트뷰로부터 특정 시그널 손실로 인해 이미 체결된 주문인 경우
                         entry_list.append(order_info.base)
-                        background_tasks.add_task(log_custom_message, order_info, "ORDER_CLOSED") if USE_DISCORD else None
+                        background_tasks.add_task(log_custom_message, order_info, "ORDER_CLOSED")
                         return {"result" : "ignore"}
                     else:
                         resultCancel = bot.client.cancel_order(orderID, symbol)
@@ -972,7 +972,7 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                 
                 # 미체결 주문 취소한 것도 없고, 새로 청산주문할 것도 없는 경우 알람 발생
                 if not isSendSignalDiscord and not isCancelSuccess and order_info.price != hatikoInfo.closePrice_dic.get(order_info.base):
-                    background_tasks.add_task(log_custom_message, order_info, "CLOSE_ORDER") if USE_DISCORD else None
+                    background_tasks.add_task(log_custom_message, order_info, "CLOSE_ORDER")
                     isSendSignalDiscord = True
 
                 # 3. 청산 주문
