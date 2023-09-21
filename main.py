@@ -746,13 +746,15 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                 bot.init_info(order_info)
                 symbol = order_info.unified_symbol
                 open_orders = bot.client.fetch_open_orders(symbol)
+                isCancelOnce = False
                 for open_order in open_orders:
                     if (open_order["side"] == "sell" and order_info.order_name == "NextCandle_LF") or (open_order["side"] == "buy" and order_info.order_name == "NextCandle_SF"):
                         bot.client.cancel_order(open_order["id"], symbol)
+                        isCancelOnce = True
                 isCancelSuccess = True
 
                 # 미체결 주문 취소 후 알람 발생
-                if not isSendSignalDiscord and isCancelSuccess:
+                if not isSendSignalDiscord and isCancelSuccess and isCancelOnce:
                     background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER")
                     isSendSignalDiscord = True
 
@@ -803,7 +805,7 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                     hatikoInfo.closeOrderID_list = orderID_list
                     log_message(f"len(closeOrderID_list) : {len(orderID_list)}") if LOG else None
 
-            elif order_info.order_name in HatikoInfo.closeSignal_list:
+            elif order_info.order_name in (HatikoInfo.closeLongSignal_list + HatikoInfo.closeShortSignal_list):
                 # 청산 시그널 처리
                 # 예시) 청산 시그널 수신
                 # 해당 종목이 nearLong1_list에 존재하는지 확인 -> 존재 시, 청산 주문 & 미체결 주문 취소 -> 성공 시, 존재하는 모든 리스트에서 제거
@@ -825,12 +827,15 @@ def hatikoBase(order_info: MarketOrder, background_tasks: BackgroundTasks, hatik
                 bot.init_info(order_info)
                 symbol = order_info.unified_symbol
                 open_orders = bot.client.fetch_open_orders(symbol)
+                isCancelOnce = False
                 for open_order in open_orders:
-                    bot.client.cancel_order(open_order["id"], symbol)
+                    if (open_order["side"] == "buy" and order_info.order_name in HatikoInfo.closeLongSignal_list) or (open_order["side"] == "sell" and order_info.order_name in closeShortSignal_list):
+                        bot.client.cancel_order(open_order["id"], symbol)
+                        isCancelOnce = True
                 isCancelSuccess = True
 
                 # 미체결 주문 취소 후 알람 발생
-                if not isSendSignalDiscord and isCancelSuccess:
+                if not isSendSignalDiscord and isCancelSuccess and isCancelOnce:
                     background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER")
                     isSendSignalDiscord = True
 
