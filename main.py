@@ -312,7 +312,7 @@ import queue
 
 #region Flags
 USE_DISCORD = False # Discord 사용 여부
-KILL_CONFIRM = False # 시간차 시장가청산 사용 여부
+KILL_CONFIRM = True # 시간차 시장가청산 사용 여부
 LOG = False # LOG 찍어보기 Flag
 USE_HATIKO = True # Hatiko 사용 여부
 
