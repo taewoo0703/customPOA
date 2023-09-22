@@ -651,7 +651,7 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
     orderID_list = []           # 오더id 리스트
     isCancelSuccess = False     # 미체결주문 취소성공 여부
     isReEntry = False           # 재진입 필요여부
-    isOrderSuccess = False      # 주문 성공 여부(Kill_Confirm에서 사용)
+    isOrderSuccess = False      # 주문 성공 여부
     amountCanceled = 0.0        # 주문 취소한 코인개수(NextCandle 및 Kill_Confirm에서 사용)
     sideCanceled = ""           # 취소한 주문의 방향("buy" or "sell")
     isSendSignalDiscord = False # 트뷰 시그널이 도착했다는 알람 전송 여부
@@ -832,7 +832,6 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
                     log_custom_message(order_info, "ORDER_CLOSED")
                     return {"result" : "ignore"}
 
-
             elif order_info.order_name in HatikoInfo.nextCloseSignal_list:
                 # NextCandle Close 시그널 처리
                 # 예시) NextCandle_LF 시그널 수신
@@ -947,12 +946,6 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
                     # background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER") if USE_DISCORD else None
                     log_custom_message(order_info, "CANCEL_ORDER") if USE_DISCORD else None
                     isSendSignalDiscord = True
-                
-                # 미체결 주문 취소한 것도 없고, 새로 청산주문할 것도 없는 경우 알람 발생
-                if not isSendSignalDiscord and not isCancelSuccess and order_info.price != hatikoInfo.closePrice_dic.get(order_info.base):
-                    # background_tasks.add_task(log_custom_message, order_info, "CLOSE_ORDER")
-                    log_custom_message(order_info, "CLOSE_ORDER")
-                    isSendSignalDiscord = True
 
                 # 3. 청산 주문
                 if order_info.is_close or (bot.order_info.is_spot and bot.order_info.is_sell):
@@ -992,10 +985,17 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
                             # order_result = bot.future.create_order(symbol, "limit", side, close_amount, close_price, params={"reduceOnly": True})
                             log_message(f"close_amount : {close_amount}") if LOG else None
                             order_result = bot.limit_order(order_info, close_amount, close_price)
+                            isOrderSuccess = True
                             nComplete += 1
                             updateOrderInfo(order_info, amount=close_amount)
                             # background_tasks.add_task(log, exchange_name, order_result, order_info)
                             log(exchange_name, order_result, order_info)
+
+                # 미체결 주문 취소한 것도 없고, 새로 청산주문할 것도 없는 경우 알람 발생
+                if not isSendSignalDiscord and not isCancelSuccess and not isOrderSuccess:
+                    # background_tasks.add_task(log_custom_message, order_info, "CLOSE_ORDER")
+                    log_custom_message(order_info, "CLOSE_SIGNAL")
+                    isSendSignalDiscord = True
 
                 # 4. 매매가 전부 종료된 후 매매종목 리스트 업데이트
                 removeItemFromMultipleDicts(order_info.base,
