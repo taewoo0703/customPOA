@@ -312,9 +312,7 @@ import queue
 
 #region Flags
 USE_DISCORD = False # Discord 사용 여부
-KILL_CONFIRM = True # 시간차 시장가청산 사용 여부
 LOG = False # LOG 찍어보기 Flag
-USE_HATIKO = True # Hatiko 사용 여부
 
 # Discord 변경
 @ app.get("/change_discord")
@@ -323,12 +321,6 @@ async def change_discord():
     USE_DISCORD = not USE_DISCORD
     return f"USE_DISCORD : {USE_DISCORD}"
 
-# KILL_CONFIRM 변경
-@ app.get("/change_kill_confirm")
-async def change_kill_confirm():
-    global KILL_CONFIRM
-    KILL_CONFIRM = not KILL_CONFIRM
-    return f"KILL_CONFIRM : {KILL_CONFIRM}"
 
 # LOG Flag 변경
 @ app.get("/change_log")
@@ -336,13 +328,6 @@ async def change_log():
     global LOG
     LOG = not LOG
     return f"LOG : {LOG}"
-
-# USE_HATIKO 변경
-@ app.get("/change_hatiko")
-async def change_hatiko():
-    global USE_HATIKO
-    USE_HATIKO = not USE_HATIKO
-    return f"USE_HATIKO : {USE_HATIKO}"
 
 #endregion Flags
 
@@ -389,6 +374,35 @@ async def orderinfo(order_info: MarketOrder, background_tasks: BackgroundTasks):
 
 
 #region ############################### Hatiko ###############################
+
+#region Hatiko용 Flag, 전역변수
+USE_HATIKO = True # Hatiko 사용 여부
+KILL_CONFIRM = True # 시간차 시장가청산 사용 여부
+KILL_MINUTE = 10 # 시간차 시장가 청산 기능에서 대기 시간(분)
+
+
+# USE_HATIKO 변경
+@ app.get("/change_hatiko")
+async def change_hatiko():
+    global USE_HATIKO
+    USE_HATIKO = not USE_HATIKO
+    return f"USE_HATIKO : {USE_HATIKO}"
+
+# KILL_CONFIRM 변경
+@ app.get("/change_kill_confirm")
+async def change_kill_confirm():
+    global KILL_CONFIRM
+    KILL_CONFIRM = not KILL_CONFIRM
+    return f"KILL_CONFIRM : {KILL_CONFIRM}"
+
+# KILL_MINUTE 변경
+@ app.get("/set_kill_minute/{minute}")
+async def set_kill_minute(minute: int):
+    global KILL_MINUTE
+    KILL_MINUTE = minute
+    return f"KILL_MINUTE : {KILL_MINUTE}"
+
+#endregion Hatiko용 Flag, 전역변수
 
 
 # 실매매용 웹훅URL
@@ -557,8 +571,8 @@ def removeItemFromMultipleLists(item, *lists) -> bool:
         return False
 
 def kill_confirm_thread_func(order_info: MarketOrder):
-    # 1분 대기
-    time.sleep(60)
+    # N분 대기
+    time.sleep(60 * KILL_MINUTE)
     # order_name을 시장가로 변경 후 queue에 넣기
     updateOrderInfo(order_info, order_name="Kill_Confirm")
     hatiko_queue.put(order_info)
