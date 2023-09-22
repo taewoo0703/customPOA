@@ -793,6 +793,7 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
                     else:
                         resultCancel = bot.client.cancel_order(orderID, symbol)
                         log_message(f"resultCancel['status'] : {resultCancel['status']}") if LOG else None
+                        time.sleep(0.1) # 비트겟은 취소 후 바로 orderStatus를 조회하면 취소가 안된 상태로 조회됨
                         orderAfterCancel = bot.client.fetch_order(orderID, symbol)
                         log_message(f"orderAfterCancel['status'] : {orderAfterCancel['status']}") if LOG else None
                         if orderAfterCancel["status"] == "canceled":
