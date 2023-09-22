@@ -29,7 +29,7 @@ import os
 import sys
 from devtools import debug
 
-VERSION = "POA : 0.1.1, Hatiko : 230922 testtest"
+VERSION = "POA : 0.1.1, Hatiko : 230922 test"
 app = FastAPI(default_response_class=ORJSONResponse)
 
 
@@ -651,6 +651,7 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
     isSettingFinish = False     # 매매전 ccxt 세팅 flag 
     orderID_list = []           # 오더id 리스트
     isCancelSuccess = False     # 미체결주문 취소성공 여부
+    isOrderSuccess = False      # 주문 성공 여부(Kill_Confirm에서 사용)
     amountCanceled = 0          # 주문 취소한 코인개수(NextCandle 로직에서 사용)
     sideCanceled = ""           # 취소한 주문의 방향("buy" or "sell")
     isSendSignalDiscord = False # 트뷰 시그널이 도착했다는 알람 전송 여부
@@ -1010,11 +1011,14 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
                 symbol = order_info.unified_symbol
                 open_orders = bot.client.fetch_open_orders(symbol)
                 for open_order in open_orders :
-                # 청산 주문이 남아있는 경우
+                    # 청산 주문이 남아있는 경우
                     if (open_order["side"] == "sell" and order_info.is_sell) or (open_order["side"] == "buy" and order_info.is_buy) :
                         bot.client.cancel_order(open_order["id"], symbol)
-                    else:
-                        return { "result": "success" }
+                        isCancelSuccess = True
+                
+                # 모두 청산된 경우
+                if not isCancelSuccess :
+                    {"result" : "ignore"}
 
                 # 2. 청산 주문
                 if order_info.is_close or (bot.order_info.is_spot and bot.order_info.is_sell) :
@@ -1054,23 +1058,26 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
                             # order_result = bot.future.create_order(symbol, "limit", side, close_amount, close_price, params = { "reduceOnly": True })
                             log_message(f"close_amount : {close_amount}") if LOG else None
                             order_result = bot.limit_order(order_info, close_amount, close_price)
+                            isOrderSuccess = True
                             nComplete += 1
                             updateOrderInfo(order_info, amount = close_amount)
                             log(exchange_name, order_result, order_info)
+                            
 
-                            # 3. Entry_list 및 해당 nearList 초기화
-                            for i in range(1, 5) :
-                                long_list_name = f"Long{i}_list"
-                                near_long_dict_name = f"nearLong{i}_dic"
-                                short_list_name = f"Short{i}_list"
-                                near_short_dict_name = f"nearShort{i}_dic"
+                # 3. Entry_list 및 해당 nearList 초기화
+                if isOrderSuccess:
+                    for i in range(1, 5) :
+                        long_list_name = f"Long{i}_list"
+                        near_long_dict_name = f"nearLong{i}_dic"
+                        short_list_name = f"Short{i}_list"
+                        near_short_dict_name = f"nearShort{i}_dic"
 
-                                if order_info.base in getattr(hatikoInfo, long_list_name) :
-                                    getattr(hatikoInfo, long_list_name).remove(order_info.base)
-                                    getattr(hatikoInfo, near_long_dict_name).pop(order_info.base)
-                                if order_info.base in getattr(hatikoInfo, short_list_name) :
-                                    getattr(hatikoInfo, short_list_name).remove(order_info.base)
-                                    getattr(hatikoInfo, near_short_dict_name).pop(order_info.base)
+                        if order_info.base in getattr(hatikoInfo, long_list_name) :
+                            getattr(hatikoInfo, long_list_name).remove(order_info.base)
+                            getattr(hatikoInfo, near_long_dict_name).pop(order_info.base)
+                        if order_info.base in getattr(hatikoInfo, short_list_name) :
+                            getattr(hatikoInfo, short_list_name).remove(order_info.base)
+                            getattr(hatikoInfo, near_short_dict_name).pop(order_info.base)
 
             else:
                 # background_tasks.add_task(log_custom_message, order_info, "ORDER_NAME_INCORRECT")
