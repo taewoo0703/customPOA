@@ -29,7 +29,7 @@ import os
 import sys
 from devtools import debug
 
-VERSION = "POA : 0.1.1, Hatiko : 230922 test"
+VERSION = "POA : 0.1.1, Hatiko : 230922 testtest"
 app = FastAPI(default_response_class=ORJSONResponse)
 
 
