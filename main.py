@@ -1016,10 +1016,6 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
                         bot.client.cancel_order(open_order["id"], symbol)
                         isCancelSuccess = True
                 
-                # 모두 청산된 경우
-                if not isCancelSuccess :
-                    {"result" : "ignore"}
-
                 # 2. 청산 주문
                 if order_info.is_close or (bot.order_info.is_spot and bot.order_info.is_sell) :
                     #############################
