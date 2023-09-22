@@ -638,8 +638,7 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
     해당 종목이 nearLong1_list에 존재하는지 확인 -> 존재 시, 청산 주문 -> 성공 시, 존재하는 모든 리스트에서 제거
     
     5. Kill_Confirm 시그널 수신 (시간차 시장가 청산 기능)
-    임시) 1분 대기 -> 모든 미체결 청산주문 확인 -> 미체결 주문 있으면 취소 -> Entry_list에 그 사이에 새로운 주문이 들어왔는지 확인 -> 보유물량 전체 시장가 청산 후 Entry_list 및 해당 nearList 초기화
-    개선예정) 1분 대기 -> 모든 미체결 청산주문 확인 -> 미체결 주문 있으면 취소 -> Entry_list에 그 사이에 새로운 주문이 들어왔는지 확인 -> 해당 amount를 제외한 나머지 시장가 청산
+    1분 대기 -> 모든 미체결 청산주문 확인 -> 미체결 주문 있으면 취소 -> remaining amount 만큼 청산
     
     """
     
@@ -651,8 +650,9 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
     isSettingFinish = False     # 매매전 ccxt 세팅 flag 
     orderID_list = []           # 오더id 리스트
     isCancelSuccess = False     # 미체결주문 취소성공 여부
+    isReEntry = False           # 재진입 필요여부
     isOrderSuccess = False      # 주문 성공 여부(Kill_Confirm에서 사용)
-    amountCanceled = 0          # 주문 취소한 코인개수(NextCandle 로직에서 사용)
+    amountCanceled = 0.0        # 주문 취소한 코인개수(NextCandle 및 Kill_Confirm에서 사용)
     sideCanceled = ""           # 취소한 주문의 방향("buy" or "sell")
     isSendSignalDiscord = False # 트뷰 시그널이 도착했다는 알람 전송 여부
 
@@ -762,6 +762,16 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
                 # 예시) NextCandle_L1 시그널 수신
                 # 해당 종목이 nearLong1_dic에 존재하는지 확인 -> 존재 시, Long1_list에 없으면 미체결주문 체크 -> 미체결주문 취소 & 신규 Long1 주문
                 
+                # 0. 트뷰에서는 청산 시그널로 오기 때문에 진입으로 order_info 수정 후 디스코드 알람 전송
+                if order_info.is_futures and order_info.is_close:
+                    order_info.is_entry = True
+                    order_info.is_close = None
+                    order_info.is_buy = None if order_info.is_buy else True
+                    order_info.is_sell = None if order_info.is_sell else True
+                if order_info.is_spot:
+                    order_info.is_buy = None
+                    order_info.is_sell = True
+
                 # 1. 봉마감 후 재주문이 필요없으면 무시
                 near_dic = hatikoInfo.matchNearDic(order_info.order_name)
                 entry_list = hatikoInfo.matchEntryList(order_info.order_name)
@@ -782,46 +792,46 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
                     order = bot.client.fetch_order(orderID, symbol)
                     log_message(f"order['status'] : {order['status']}") if LOG else None
                     if order["status"] == "canceled":
-                        amountCanceled = order["amount"]
+                        isCancelSuccess = True
+                        amountCanceled = order["remaining"]
                         sideCanceled = order["side"]
-                    elif order["status"] == "closed":
-                        # 트뷰로부터 특정 시그널 손실로 인해 이미 체결된 주문인 경우
-                        entry_list.append(order_info.base)
-                        # background_tasks.add_task(log_custom_message, order_info, "ORDER_CLOSED")
-                        log_custom_message(order_info, "ORDER_CLOSED")
-                        return {"result" : "ignore"}
-                    else:
+                    elif order["status"] == "open":
+                        isReEntry = True
                         resultCancel = bot.client.cancel_order(orderID, symbol)
                         log_message(f"resultCancel['status'] : {resultCancel['status']}") if LOG else None
                         time.sleep(0.1) # 비트겟은 취소 후 바로 orderStatus를 조회하면 취소가 안된 상태로 조회됨
                         orderAfterCancel = bot.client.fetch_order(orderID, symbol)
                         log_message(f"orderAfterCancel['status'] : {orderAfterCancel['status']}") if LOG else None
                         if orderAfterCancel["status"] == "canceled":
-                            amountCanceled = orderAfterCancel["amount"]
+                            isCancelSuccess = True
+                            amountCanceled = orderAfterCancel["remaining"]
                             sideCanceled = orderAfterCancel["side"]
                             # [Debug] 미체결 주문 취소 후 알람 발생
                             # background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER") if USE_DISCORD else None
                             log_custom_message(order_info, "CANCEL_ORDER") if USE_DISCORD else None
 
-                    # 재주문 
-                    log_message(f"symbol : {symbol}, sideCanceled : {sideCanceled}, amountCanceled : {amountCanceled}, price : {order_info.price}") if LOG else None
-                    order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
-                    # order_result = bot.limit_order(order_info, amountCanceled, order_info.price)
-                    orderID_list_old.remove(orderID)
-                    orderID_list.append(order_result["id"])
+                    if isReEntry:
+                        # 재주문 
+                        log_message(f"symbol : {symbol}, sideCanceled : {sideCanceled}, amountCanceled : {amountCanceled}, price : {order_info.price}") if LOG else None
+                        order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
+                        # order_result = bot.limit_order(order_info, amountCanceled, order_info.price)
+                        isReEntry = False
+                        orderID_list.append(order_result["id"])
 
-                    # 트뷰에서는 청산 시그널로 오기 때문에 진입으로 order_info 수정 후 디스코드 알람 전송
-                    if order_info.is_futures:
-                        order_info.is_entry = True
-                        order_info.is_close = None
-                    order_info.is_buy = None if order_info.is_buy else True
-                    order_info.is_sell = None if order_info.is_sell else True
-                    updateOrderInfo(order_info, amount=amountCanceled, side=sideCanceled)
-                    # background_tasks.add_task(log, exchange_name, order_result, order_info) if USE_DISCORD else None
-                    log(exchange_name, order_result, order_info) if USE_DISCORD else None
+                        updateOrderInfo(order_info, amount=amountCanceled, side=sideCanceled)
+                        # background_tasks.add_task(log, exchange_name, order_result, order_info) if USE_DISCORD else None
+                        log(exchange_name, order_result, order_info) if USE_DISCORD else None
 
-                # 4. near_dic 오더id 업데이트
-                near_dic[order_info.base] = orderID_list
+                # 3. near_dic 오더id 업데이트
+                if isCancelSuccess:
+                    near_dic[order_info.base] = orderID_list
+                else:
+                    # 트뷰로부터 특정 시그널 손실로 인해 이미 체결된 주문인 경우
+                    entry_list.append(order_info.base)
+                    # background_tasks.add_task(log_custom_message, order_info, "ORDER_CLOSED")
+                    log_custom_message(order_info, "ORDER_CLOSED")
+                    return {"result" : "ignore"}
+
 
             elif order_info.order_name in HatikoInfo.nextCloseSignal_list:
                 # NextCandle Close 시그널 처리
@@ -1015,8 +1025,9 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
                     # 청산 주문이 남아있는 경우
                     if (open_order["side"] == "sell" and order_info.is_sell) or (open_order["side"] == "buy" and order_info.is_buy) :
                         bot.client.cancel_order(open_order["id"], symbol)
+                        amountCanceled += open_order["remaining"]
                         isCancelSuccess = True
-                
+                            
                 # 2. 청산 주문
                 if order_info.is_close or (bot.order_info.is_spot and bot.order_info.is_sell) :
                     #############################
@@ -1025,7 +1036,7 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
                     if not isSettingFinish :
                         # 초기 세팅
                         # total amount를 max_amount로 쪼개기
-                        total_amount = bot.get_amount_hatiko(symbol, hatikoInfo.nMaxLong, hatikoInfo.nMaxShort)
+                        total_amount = amountCanceled
                         log_message(f"total_amount : {total_amount}") if LOG else None
                         max_amount, min_amount = getMinMaxQty(bot, order_info)
                         log_message(f"max_amount : {max_amount}, min_amount : {min_amount}") if LOG else None
@@ -1060,21 +1071,6 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
                             updateOrderInfo(order_info, amount = close_amount)
                             log(exchange_name, order_result, order_info)
                             
-
-                # 3. Entry_list 및 해당 nearList 초기화
-                if isOrderSuccess:
-                    for i in range(1, 5) :
-                        long_list_name = f"Long{i}_list"
-                        near_long_dict_name = f"nearLong{i}_dic"
-                        short_list_name = f"Short{i}_list"
-                        near_short_dict_name = f"nearShort{i}_dic"
-
-                        if order_info.base in getattr(hatikoInfo, long_list_name) :
-                            getattr(hatikoInfo, long_list_name).remove(order_info.base)
-                            getattr(hatikoInfo, near_long_dict_name).pop(order_info.base)
-                        if order_info.base in getattr(hatikoInfo, short_list_name) :
-                            getattr(hatikoInfo, short_list_name).remove(order_info.base)
-                            getattr(hatikoInfo, near_short_dict_name).pop(order_info.base)
 
             else:
                 # background_tasks.add_task(log_custom_message, order_info, "ORDER_NAME_INCORRECT")
