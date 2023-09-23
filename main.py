@@ -898,7 +898,8 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
 
                 # 미체결 주문 취소 후 알람 발생
                 if not isSendSignalDiscord and isCancelSuccess:
-                    background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER") if USE_DISCORD else None
+                    # background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER") if USE_DISCORD else None
+                    log_custom_message(order_info, "CANCEL_ORDER")
                     isSendSignalDiscord = True
 
                 # 3. 청산 주문
@@ -942,11 +943,13 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                             isOrderSuccess = True
                             nComplete += 1
                             updateOrderInfo(order_info, amount=close_amount)
-                            background_tasks.add_task(log, exchange_name, order_result, order_info)
+                            # background_tasks.add_task(log, exchange_name, order_result, order_info)
+                            log(exchange_name, order_result, order_info)
 
                 # 미체결 주문 취소한 것도 없고, 새로 청산주문할 것도 없는 경우 알람 발생
                 if not isSendSignalDiscord and not isCancelSuccess and not isOrderSuccess:
-                    background_tasks.add_task(log_custom_message, order_info, "CLOSE_SIGNAL")
+                    # background_tasks.add_task(log_custom_message, order_info, "CLOSE_SIGNAL")
+                    log_custom_message(order_info, "CLOSE_SIGNAL")
                     isSendSignalDiscord = True
 
                 # 4. 매매가 전부 종료된 후 매매종목 리스트 업데이트
@@ -1039,6 +1042,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                             isOrderSuccess = True
                             nComplete += 1
                             updateOrderInfo(order_info, amount = close_amount)
+                            # background_tasks.add_task(log, exchange_name, order_result, order_info)
                             log(exchange_name, order_result, order_info)
 
             else:
