@@ -760,7 +760,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                         isReEntry = True
                         resultCancel = bot.client.cancel_order(orderID, symbol)
                         log_message(f"resultCancel['status'] : {resultCancel['status']}") if LOG else None
-                        asyncio.sleep(0.1) # 비트겟은 취소 후 바로 orderStatus를 조회하면 취소가 안된 상태로 조회됨
+                        await asyncio.sleep(0.1) # 비트겟은 취소 후 바로 orderStatus를 조회하면 취소가 안된 상태로 조회됨
                         orderAfterCancel = bot.client.fetch_order(orderID, symbol)
                         log_message(f"orderAfterCancel['status'] : {orderAfterCancel['status']}") if LOG else None
                         if orderAfterCancel["status"] == "canceled":
@@ -961,7 +961,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                 # 5. 시간차 청산주문 단계로 이동
                 if KILL_CONFIRM:
                     # KILL_MINUTE 분 대기
-                    asyncio.sleep(60 * KILL_MINUTE) 
+                    await asyncio.sleep(60 * KILL_MINUTE) 
 
                     # 변수 초기화 및 order_info 변경
                     order_result = None
