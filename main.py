@@ -965,32 +965,14 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                 if KILL_CONFIRM:
                     # KILL_MINUTE 분 대기
                     await asyncio.sleep(60 * KILL_MINUTE) 
-
-                    # # 변수 초기화 및 order_info 변경
-                    # order_result = None
-                    # nMaxTry = 5                # 주문 재시도 횟수
-                    # nGoal = 0   
-                    # nComplete = 0
-                    # isSettingFinish = False     # 매매전 ccxt 세팅 flag 
-                    # orderID_list = []           # 오더id 리스트
-                    # isCancelSuccess = False     # 미체결주문 취소성공 여부
-                    # isReEntry = False           # 재진입 필요여부
-                    # isOrderSuccess = False      # 주문 성공 여부
-                    # amountCanceled = 0.0        # 주문 취소한 코인개수(NextCandle 및 Kill_Confirm에서 사용)
-                    # sideCanceled = ""           # 취소한 주문의 방향("buy" or "sell")
-                    # isSendSignalDiscord = False # 트뷰 시그널이 도착했다는 알람 전송 여부
+                    # 재귀 호출
                     updateOrderInfo(order_info, order_name="Kill_Confirm")
-                    log_message("재귀시작")
-                    background_tasks.add_task(log_message, "재귀시작백그라운드")
-                    # 재귀호출
                     await hatikoBase(order_info, hatikoInfo, background_tasks)
 
             elif order_info.order_name in HatikoInfo.ignoreSignal_list:
                 return {"result" : "ignore"}
 
             elif order_info.order_name == "Kill_Confirm":
-                log_message("해위")
-                background_tasks.add_task(log_message, "해위백그라운드")
                 # 1. 미체결 주문 취소
                 exchange_name = order_info.exchange
                 bot = get_bot(exchange_name, order_info.kis_number)
