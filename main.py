@@ -982,7 +982,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                     updateOrderInfo(order_info, order_name="Kill_Confirm")
 
                     # 재귀호출
-                    hatikoBase(order_info, background_tasks)
+                    hatikoBase(order_info, hatikoInfo, background_tasks)
 
             elif order_info.order_name in HatikoInfo.ignoreSignal_list:
                 return {"result" : "ignore"}
