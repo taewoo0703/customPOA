@@ -235,7 +235,7 @@ class Bitget:
 ##############################################################################
 
     # hatiko용 get_amount
-    def get_amount_hatiko(self, symbol, nMaxLong, nMaxShort, entryRate: float=0) -> float:
+    def get_amount_hatiko(self, symbol, nMaxLong, nMaxShort, entryRate: float=0, liquidationMDD: float=80.0) -> float:
         """
         entryRate : 현물인 경우에만 사용함. entryCash = entryRate * freecash
         """
@@ -245,7 +245,7 @@ class Bitget:
             if self.order_info.is_entry and self.order_info.side in ("buy"):
                 total_bal = float(self.client.fetch_balance().get('total').get('USDT'))
                 cash = total_bal / 4.0 / nMaxLong     # 총 자본을 4분할 + nMaxLong종목 몰빵
-                cash = cash * 100.0 / 70.0  # 청산당할 MDD를 70%로 설정하기 때문에 100/70을 곱함.
+                cash = cash * 100.0 / liquidationMDD  # 청산당할 MDD 고려
                 result = cash / self.order_info.price
 
             # Short Entry

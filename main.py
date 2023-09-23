@@ -470,12 +470,12 @@ async def reset_hatikoinfo_all():
 @app.get("/set_hatikoinfo/{exchange}/{market_type}/{variable}/{value}")
 async def set_hatikoinfo(exchange: str, market_type: str, variable: str, value: int):
     global hatikoInfoObjects
-    if variable not in ("nmax_long", "nmax_short", "nignore_long", "nignore_short"):
+    if variable not in ("nmax_long", "nmax_short", "nignore_long", "nignore_short", "liquidation_mdd"):
         return "Invalid variable."
     hatikoInfo = hatikoInfoObjects.get(f"{exchange}_{market_type}")
     with hatiko_lock:
         if hatikoInfo:
-            hatikoInfo.set_n(variable, value)
+            hatikoInfo.set_variable(variable, value)
             return f"Set {variable} : {value}"
         else:
             return "Invalid exchange."
@@ -484,11 +484,11 @@ async def set_hatikoinfo(exchange: str, market_type: str, variable: str, value: 
 @app.get("/set_hatikoinfo_all/{variable}/{value}")
 async def set_hatikoinfo_all(variable: str, value: int):
     global hatikoInfoObjects
-    if variable not in ("nmax_long", "nmax_short", "nignore_long", "nignore_short"):
+    if variable not in ("nmax_long", "nmax_short", "nignore_long", "nignore_short", "liquidation_mdd"):
         return "Invalid variable."
     with hatiko_lock:
         for hatikoInfo in hatikoInfoObjects.values():
-            hatikoInfo.set_n(variable, value)
+            hatikoInfo.set_variable(variable, value)
         return f"Set {variable} : {value}"
 
 #endregion HatikoInfo 관련 함수
@@ -1084,7 +1084,6 @@ def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo):
                             nComplete += 1
                             updateOrderInfo(order_info, amount = close_amount)
                             log(exchange_name, order_result, order_info)
-                            
 
             else:
                 # background_tasks.add_task(log_custom_message, order_info, "ORDER_NAME_INCORRECT")

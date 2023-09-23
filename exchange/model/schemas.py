@@ -371,6 +371,9 @@ class HatikoInfo:
         self.nIgnoreLong = nIgnoreLong
         self.nIgnoreShort = nIgnoreShort
 
+        # 청산당할 MDD
+        self.liquidationMDD = 80.0  # 80% MDD에 도달하면 청산예정
+
         # 지정가 Hatiko용 near시그널 딕셔너리
         # base(종목명) : orderID_list(오더id 리스트)
         self.nearLong1_dic = {}
@@ -484,6 +487,7 @@ class HatikoInfo:
                 "nMaxShort" : str(self.nMaxShort),
                 "nIgnoreLong" : str(self.nIgnoreLong),
                 "nIgnoreShort" : str(self.nIgnoreShort),
+                "liquidationMDD" : str(self.liquidationMDD),
                 "nearLong1_dic"  : str(list(self.nearLong1_dic.keys())),
                 "nearLong2_dic"  : str(list(self.nearLong2_dic.keys())),
                 "nearLong3_dic"  : str(list(self.nearLong3_dic.keys())),
@@ -550,7 +554,7 @@ class HatikoInfo:
 
         return "Reset HatikoInfo Complete!!!"
     
-    def set_n(self, variable: str, value: int):
+    def set_variable(self, variable: str, value: int):
         if variable == "nmax_long":
             self.nMaxLong = value
         elif variable == "nmax_short":
@@ -559,6 +563,8 @@ class HatikoInfo:
             self.nIgnoreLong = value
         elif variable == "nignore_short":
             self.nIgnoreShort = value
+        elif variable == "liquidation_mdd":
+            self.liquidationMDD = float(value)
         else:
             return "Wrong variable name!!!"
         return "Set " + variable + " to " + str(value) + "!!!"
