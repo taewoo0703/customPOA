@@ -980,7 +980,8 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                     # sideCanceled = ""           # 취소한 주문의 방향("buy" or "sell")
                     # isSendSignalDiscord = False # 트뷰 시그널이 도착했다는 알람 전송 여부
                     updateOrderInfo(order_info, order_name="Kill_Confirm")
-
+                    log_message("재귀시작")
+                    background_tasks.add_task(log_message, "재귀시작백그라운드")
                     # 재귀호출
                     hatikoBase(order_info, hatikoInfo, background_tasks)
 
@@ -988,6 +989,8 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                 return {"result" : "ignore"}
 
             elif order_info.order_name == "Kill_Confirm":
+                log_message("해위")
+                background_tasks.add_task(log_message, "해위백그라운드")
                 # 1. 미체결 주문 취소
                 exchange_name = order_info.exchange
                 bot = get_bot(exchange_name, order_info.kis_number)
