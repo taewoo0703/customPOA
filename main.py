@@ -7,7 +7,7 @@ from fastapi.responses import ORJSONResponse, RedirectResponse
 from fastapi.exceptions import RequestValidationError
 import httpx
 from exchange.stock.kis import KoreaInvestment
-from exchange.model import MarketOrder, PriceRequest, HedgeData, OrderRequest, ArbiData, HatikoInfo
+from exchange.model import MarketOrder, PriceRequest, HedgeData, OrderRequest, ArbiData, HatikoInfo, HatikoOrder
 from exchange.utility import (
     settings,
     log_order_message,

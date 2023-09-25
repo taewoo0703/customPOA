@@ -348,6 +348,24 @@ class ArbiData(BaseModel):
                 values[key] = value.upper()
         return values
 
+class HatikoOrder(OrderBase):
+    # Long Envelope Price
+    price_L1: float | None = None
+    price_L2: float | None = None
+    price_L3: float | None = None
+    price_L4: float | None = None
+
+    # Short Envelope Price
+    price_S1: float | None = None
+    price_S2: float | None = None
+    price_S3: float | None = None
+    price_S4: float | None = None
+
+    # Close Price
+    price_C: float | None = None
+
+    type: Literal["limit"] = "limit"
+
 class HatikoInfo:
     # [static] order_name 리스트
     nearSignal_list = ["nearLong1", "nearLong2", "nearLong3", "nearLong4",
