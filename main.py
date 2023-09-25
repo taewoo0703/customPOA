@@ -899,7 +899,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                 # 미체결 주문 취소 후 알람 발생
                 if not isSendSignalDiscord and isCancelSuccess:
                     # background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER") if USE_DISCORD else None
-                    log_custom_message(order_info, "CANCEL_ORDER")
+                    log_custom_message(order_info, "CANCEL_ORDER") if USE_DISCORD else None
                     isSendSignalDiscord = True
 
                 # 3. 청산 주문
