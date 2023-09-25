@@ -7,7 +7,7 @@ from fastapi.responses import ORJSONResponse, RedirectResponse
 from fastapi.exceptions import RequestValidationError
 import httpx
 from exchange.stock.kis import KoreaInvestment
-from exchange.model import MarketOrder, PriceRequest, HedgeData, OrderRequest, ArbiData, HatikoInfo, HatikoOrder
+from exchange.model import MarketOrder, PriceRequest, HedgeData, OrderRequest, ArbiData, HatikoInfo, HatikoOrder, IndividualOrder
 from exchange.utility import (
     settings,
     log_order_message,
@@ -548,7 +548,6 @@ def removeItemFromMultipleLists(item, *lists) -> bool:
         return True
     else:
         return False
-
 #endregion HatikoBase 관련 함수
 
 
@@ -558,11 +557,11 @@ def removeItemFromMultipleLists(item, *lists) -> bool:
 # 실매매용 웹훅URL
 @ app.post("/hatiko")
 @ app.post("/")
-async def hatiko(order_info: MarketOrder, background_tasks: BackgroundTasks):
+async def hatiko(hatikoOrder: HatikoOrder, background_tasks: BackgroundTasks):
     global HI_Binance_Future, HI_Binance_Spot, HI_Bitget_Future, HI_Bitget_Spot, HI_Bybit_Future, HI_Bybit_Spot, HI_OKX_Future, HI_OKX_Spot
     
-    exchange = order_info.exchange
-    is_spot = order_info.is_spot
+    exchange = hatikoOrder.exchange
+    is_spot = hatikoOrder.is_spot
     hatikoInfo = None
 
     if exchange == "BINANCE":
@@ -575,9 +574,30 @@ async def hatiko(order_info: MarketOrder, background_tasks: BackgroundTasks):
         hatikoInfo = HI_OKX_Spot if is_spot else HI_OKX_Future
     else:
         return "Invalid exchange."
-    
-    if hatikoInfo:
-        await hatikoBase(order_info, hatikoInfo, background_tasks)
+
+    if hatikoOrder.mode is not None:
+        # Divide HatikoOrder to each order_info
+        for price_key, order_name_map in hatikoOrder.order_name_map.items():
+            price_value = getattr(hatikoOrder, price_key)
+            if price_value is not None:
+                order_info = IndividualOrder(hatikoOrder)
+                order_info.price = price_value
+                order_info.order_name = order_name_map.get(hatikoOrder.mode, "")
+                await hatikoBase(order_info, hatikoInfo, background_tasks)
+
+        # 미리청산 주문추가
+        if hatikoOrder.mode == "NextCandle" and hatikoOrder.price_C is not None:
+            order_info = IndividualOrder(hatikoOrder)
+            order_info.price = hatikoOrder.price_C
+            if hatikoOrder.is_sell:
+                order_info.order_name = "NextCandle_LC"
+            elif hatikoOrder.is_buy:
+                order_info.order_name = "NextCandle_SC"
+            await hatikoBase(order_info, hatikoInfo, background_tasks)
+    else:
+        await hatikoBase(hatikoOrder, hatikoInfo, background_tasks)
+
+
 
 async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background_tasks: BackgroundTasks):
     """

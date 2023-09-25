@@ -348,7 +348,10 @@ class ArbiData(BaseModel):
                 values[key] = value.upper()
         return values
 
-class HatikoOrder(OrderBase):
+class HatikoOrder(MarketOrder):
+    # order mode
+    mode: Literal["Near", "NextCandle", "Close"] | None = None
+
     # Long Envelope Price
     price_L1: float | None = None
     price_L2: float | None = None
@@ -364,7 +367,56 @@ class HatikoOrder(OrderBase):
     # Close Price
     price_C: float | None = None
 
-    type: Literal["limit"] = "limit"
+    # Order Name Mapping
+    order_name_map = {
+        "price_L1": {"Near": "nearLong1",     "NextCandle": "NextCandle_L1",    "Close": "TakeProfit_nearL1"},
+        "price_L2": {"Near": "nearLong2",     "NextCandle": "NextCandle_L2",    "Close": "TakeProfit_nearL2"},
+        "price_L3": {"Near": "nearLong3",     "NextCandle": "NextCandle_L3",    "Close": "TakeProfit_nearL3"},
+        "price_L4": {"Near": "nearLong4",     "NextCandle": "NextCandle_L4",    "Close": "TakeProfit_nearL4"},
+        "price_S1": {"Near": "nearShort1",    "NextCandle": "NextCandle_S1",    "Close": "TakeProfit_nearS1"},
+        "price_S2": {"Near": "nearShort2",    "NextCandle": "NextCandle_S2",    "Close": "TakeProfit_nearS2"},
+        "price_S3": {"Near": "nearShort3",    "NextCandle": "NextCandle_S3",    "Close": "TakeProfit_nearS3"},
+        "price_S4": {"Near": "nearShort4",    "NextCandle": "NextCandle_S4",    "Close": "TakeProfit_nearS4"},
+        }
+
+class IndividualOrder:
+    """
+    MarketOrder와 동일한 파라미터 이름을 가진 "인스턴스" 멤버변수를 가지고 있다.
+    """
+    def __init__(self, order_info: MarketOrder):
+        # OrderRequest 정적 변수
+        self.exchange = order_info.exchange
+        self.base = order_info.base
+        self.quote = order_info.quote
+        self.type = order_info.type
+        self.side = order_info.side
+        self.amount = order_info.amount
+        self.price = order_info.price
+        self.cost = order_info.cost
+        self.percent = order_info.percent
+        self.amount_by_percent = order_info.amount_by_percent
+        self.leverage = order_info.leverage
+        self.stop_price = order_info.stop_price
+        self.profit_price = order_info.profit_price
+        self.order_name = order_info.order_name
+        self.kis_number = order_info.kis_number
+        self.hedge = order_info.hedge
+        self.unified_symbol = order_info.unified_symbol
+        self.is_crypto = order_info.is_crypto
+        self.is_stock = order_info.is_stock
+        self.is_spot = order_info.is_spot
+        self.is_futures = order_info.is_futures
+        self.is_coinm = order_info.is_coinm
+        self.is_entry = order_info.is_entry
+        self.is_close = order_info.is_close
+        self.is_buy = order_info.is_buy
+        self.is_sell = order_info.is_sell
+        self.is_contract = order_info.is_contract
+        self.contract_size = order_info.contract_size
+        self.margin_mode = order_info.margin_mode
+
+        # OrderBase 정적 변수
+        self.password = order_info.password
 
 class HatikoInfo:
     # [static] order_name 리스트
