@@ -1029,10 +1029,9 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                             # background_tasks.add_task(log, exchange_name, order_result, order_info)
 
                 # 미체결 주문 취소한 것도 없고, 새로 청산주문할 것도 없는 경우 알람 발생
-                if not isSendSignalDiscord and not isCancelSuccess and not isOrderSuccess:
+                if not isCancelSuccess and not isOrderSuccess:
                     # background_tasks.add_task(log_custom_message, order_info, "CLOSE_SIGNAL")
                     log_custom_message(order_info, "CLOSE_SIGNAL")
-                    isSendSignalDiscord = True
 
                 # 4. 매매가 전부 종료된 후 매매종목 리스트 업데이트
                 removeItemFromMultipleDicts(order_info.base,
