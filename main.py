@@ -847,7 +847,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                             log_custom_message(order_info, "CANCEL_ORDER") if USE_DISCORD else None
                             # background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER") if USE_DISCORD else None
 
-                    if isReEntry:
+                    if isReEntry and order_info.base in near_dic: # asyncio.sleep(0.1) 때문에 NextCandle 로직 중에 비동기로 이미 Close 주문을 행사한 경우 재주문 방지
                         # 재주문 
                         log_message(f"symbol : {symbol}, sideCanceled : {sideCanceled}, amountCanceled : {amountCanceled}, price : {order_info.price}") if LOG else None
                         order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
@@ -861,7 +861,9 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
 
                 # 3. near_dic 오더id 업데이트
                 if isCancelSuccess:
-                    near_dic[order_info.base] = orderID_list
+                    # NextCandle 로직 중에 비동기로 이미 Close 주문을 행사한 경우 재주문 방지
+                    if order_info.base in near_dic:
+                        near_dic[order_info.base] = orderID_list
                 else:
                     # 트뷰로부터 특정 시그널 손실로 인해 이미 체결된 주문인 경우
                     entry_list.append(order_info.base)

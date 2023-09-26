@@ -370,16 +370,16 @@ class HatikoOrder(MarketOrder):
 
     # Order Name Mapping
     order_name_map = {
-        "price_L1": {"Near": "nearLong1",               "NextCandle": "NextCandle_L1"},
-        "price_L2": {"Near": "nearLong2",               "NextCandle": "NextCandle_L2"},
-        "price_L3": {"Near": "nearLong3",               "NextCandle": "NextCandle_L3"},
-        "price_L4": {"Near": "nearLong4",               "NextCandle": "NextCandle_L4"},
-        "price_S1": {"Near": "nearShort1",              "NextCandle": "NextCandle_S1"},
-        "price_S2": {"Near": "nearShort2",              "NextCandle": "NextCandle_S2"},
-        "price_S3": {"Near": "nearShort3",              "NextCandle": "NextCandle_S3"},
-        "price_S4": {"Near": "nearShort4",              "NextCandle": "NextCandle_S4"},
-        "price_LC": {"Close": "close Longs on open",    "NextCandle": "NextCandle_LF"},
-        "price_SC": {"Close": "close Shorts on open",   "NextCandle": "NextCandle_SF"},
+        "price_L1": {"Near": "nearLong1",     "NextCandle": "NextCandle_L1"},
+        "price_L2": {"Near": "nearLong2",     "NextCandle": "NextCandle_L2"},
+        "price_L3": {"Near": "nearLong3",     "NextCandle": "NextCandle_L3"},
+        "price_L4": {"Near": "nearLong4",     "NextCandle": "NextCandle_L4"},
+        "price_S1": {"Near": "nearShort1",    "NextCandle": "NextCandle_S1"},
+        "price_S2": {"Near": "nearShort2",    "NextCandle": "NextCandle_S2"},
+        "price_S3": {"Near": "nearShort3",    "NextCandle": "NextCandle_S3"},
+        "price_S4": {"Near": "nearShort4",    "NextCandle": "NextCandle_S4"},
+        "price_LC": {"Close": "close_Longs",  "NextCandle": "NextCandle_LF"},
+        "price_SC": {"Close": "close_Shorts", "NextCandle": "NextCandle_SF"},
         }
 
 class IndividualOrder:
@@ -434,7 +434,8 @@ class HatikoInfo:
                         "TakeProfit_nearL1", "TakeProfit_nearL2", "TakeProfit_nearL3", "TakeProfit_nearL4", 
                         "TakeProfit_nearS1", "TakeProfit_nearS2", "TakeProfit_nearS3", "TakeProfit_nearS4", 
                         "TakeProfit_L1", "TakeProfit_L2", "TakeProfit_L3", "TakeProfit_L4",
-                        "TakeProfit_S1", "TakeProfit_S2", "TakeProfit_S3", "TakeProfit_S4"]
+                        "TakeProfit_S1", "TakeProfit_S2", "TakeProfit_S3", "TakeProfit_S4",
+                        "close_Longs", "close_Shorts"]
     ignoreSignal_list = ["Long_Flag", "Short_Flag", "Long_Flag_Cancel", "Short_Flag_Cancel"]
     
     def __init__(self, nMaxLong=2, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0):
