@@ -641,7 +641,9 @@ async def hatiko(hatikoOrder: HatikoOrder, background_tasks: BackgroundTasks):
                 order_info = IndividualOrder(hatikoOrder)
                 order_info.price = price_value
                 order_info.order_name = order_name_map.get(hatikoOrder.mode, "")
+                log_message(f"order_info : {order_info.order_name}, {order_info.price}") if LOG else None
                 if not order_info.order_name:
+                    log_message("order_info_list.append(order_info)") if LOG else None
                     order_info_list.append(order_info)
         for order_info in order_info_list:
             await hatikoBase(order_info, hatikoInfo, background_tasks)
