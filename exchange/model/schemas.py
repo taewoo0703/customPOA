@@ -365,18 +365,21 @@ class HatikoOrder(MarketOrder):
     price_S4: float | None = None
 
     # Close Price
-    price_C: float | None = None
+    price_LC: float | None = None
+    price_SC: float | None = None
 
     # Order Name Mapping
     order_name_map = {
-        "price_L1": {"Near": "nearLong1",     "NextCandle": "NextCandle_L1",    "Close": "TakeProfit_nearL1"},
-        "price_L2": {"Near": "nearLong2",     "NextCandle": "NextCandle_L2",    "Close": "TakeProfit_nearL2"},
-        "price_L3": {"Near": "nearLong3",     "NextCandle": "NextCandle_L3",    "Close": "TakeProfit_nearL3"},
-        "price_L4": {"Near": "nearLong4",     "NextCandle": "NextCandle_L4",    "Close": "TakeProfit_nearL4"},
-        "price_S1": {"Near": "nearShort1",    "NextCandle": "NextCandle_S1",    "Close": "TakeProfit_nearS1"},
-        "price_S2": {"Near": "nearShort2",    "NextCandle": "NextCandle_S2",    "Close": "TakeProfit_nearS2"},
-        "price_S3": {"Near": "nearShort3",    "NextCandle": "NextCandle_S3",    "Close": "TakeProfit_nearS3"},
-        "price_S4": {"Near": "nearShort4",    "NextCandle": "NextCandle_S4",    "Close": "TakeProfit_nearS4"},
+        "price_L1": {"Near": "nearLong1",               "NextCandle": "NextCandle_L1"},
+        "price_L2": {"Near": "nearLong2",               "NextCandle": "NextCandle_L2"},
+        "price_L3": {"Near": "nearLong3",               "NextCandle": "NextCandle_L3"},
+        "price_L4": {"Near": "nearLong4",               "NextCandle": "NextCandle_L4"},
+        "price_S1": {"Near": "nearShort1",              "NextCandle": "NextCandle_S1"},
+        "price_S2": {"Near": "nearShort2",              "NextCandle": "NextCandle_S2"},
+        "price_S3": {"Near": "nearShort3",              "NextCandle": "NextCandle_S3"},
+        "price_S4": {"Near": "nearShort4",              "NextCandle": "NextCandle_S4"},
+        "price_LC": {"Close": "close Longs on open",    "NextCandle": "NextCandle_LF"},
+        "price_SC": {"Close": "close Shorts on open",   "NextCandle": "NextCandle_SF"},
         }
 
 class IndividualOrder:

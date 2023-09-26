@@ -583,17 +583,8 @@ async def hatiko(hatikoOrder: HatikoOrder, background_tasks: BackgroundTasks):
                 order_info = IndividualOrder(hatikoOrder)
                 order_info.price = price_value
                 order_info.order_name = order_name_map.get(hatikoOrder.mode, "")
-                await hatikoBase(order_info, hatikoInfo, background_tasks)
-
-        # 미리청산 주문추가
-        if hatikoOrder.mode == "NextCandle" and hatikoOrder.price_C is not None:
-            order_info = IndividualOrder(hatikoOrder)
-            order_info.price = hatikoOrder.price_C
-            if hatikoOrder.is_sell:
-                order_info.order_name = "NextCandle_LC"
-            elif hatikoOrder.is_buy:
-                order_info.order_name = "NextCandle_SC"
-            await hatikoBase(order_info, hatikoInfo, background_tasks)
+                if not order_info.order_name:
+                    await hatikoBase(order_info, hatikoInfo, background_tasks)
     else:
         await hatikoBase(hatikoOrder, hatikoInfo, background_tasks)
 
