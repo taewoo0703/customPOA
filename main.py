@@ -1114,16 +1114,19 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                             # background_tasks.add_task(log, exchange_name, order_result, order_info)
 
             else:
-                background_tasks.add_task(log_custom_message, order_info, "ORDER_NAME_INCORRECT")
+                log_custom_message(order_info, "ORDER_NAME_INCORRECT")
+                # background_tasks.add_task(log_custom_message, order_info, "ORDER_NAME_INCORRECT")
                 return {"result" : "ignore"}
 
         except TypeError as e:
             error_msg = get_error(e)
-            background_tasks.add_task(log_order_error_message, "\n".join(error_msg), order_info)
+            log_order_error_message("\n".join(error_msg), order_info)
+            # background_tasks.add_task(log_order_error_message, "\n".join(error_msg), order_info)
 
         except Exception as e:
             error_msg = get_error(e)
-            background_tasks.add_task(log_error, "\n".join(error_msg), order_info)
+            log_order_error_message("\n".join(error_msg), order_info)
+            # background_tasks.add_task(log_error, "\n".join(error_msg), order_info)
 
         else:
             return {"result": "success"}
