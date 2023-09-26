@@ -280,7 +280,7 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
         embed = Embed(  
             title=order_info.order_name,
             description=f"{order_info.base} 시그널 정상 처리 완료",
-            color=0xFFFFFF,
+            color=0x00FF00,
         )
 
     # [공통] 주문 생성 완료
@@ -288,7 +288,7 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
         embed = Embed(  
             title=order_info.order_name,
             description=f"{order_info.base} 주문 생성 완료",
-            color=0xFFFFFF,
+            color=0x0000FF,
         )
 
     # [Hatiko] entry 시그널 발생
