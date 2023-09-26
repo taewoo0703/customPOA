@@ -374,6 +374,63 @@ async def orderinfo(order_info: MarketOrder, background_tasks: BackgroundTasks):
 #region ############################### Hatiko ###############################
 
 
+#region 디버그용
+@app.post("/hatiko_order_info")
+@app.post("/")
+async def view_hatiko_order_info(order_info: HatikoOrder, background_tasks: BackgroundTasks):
+    res = {
+        "exchange(Literal str)"  : str(order_info.exchange),
+        "base(str)" : str(order_info.base),
+        "quote(Literal str)" : str(order_info.quote),
+        "type(Literal str)" : str(order_info.type),
+        "side(Literal str)" : str(order_info.side),
+        "amount(float)" : str(order_info.amount),
+        "price(float)" : str(order_info.price),
+        "cost(float)" : str(order_info.cost),
+        "percent(float)" : str(order_info.percent),
+        "amount_by_percent(float)" : str(order_info.amount_by_percent),
+        "leverage(int)" : str(order_info.leverage),
+        "stop_price(float)" : str(order_info.stop_price),
+        "profit_price(float)" : str(order_info.profit_price),
+        "order_name(str)" : str(order_info.order_name),
+        "kis_number(int)" : str(order_info.kis_number),
+        "hedge(str)" : str(order_info.hedge),
+        "unified_symbol(str)" : str(order_info.unified_symbol),
+        "is_crypto(bool)" : str(order_info.is_crypto),
+        "is_stock(bool)" : str(order_info.is_stock),
+        "is_spot(bool)" : str(order_info.is_spot),
+        "is_futures(bool)" : str(order_info.is_futures),
+        "is_coinm(bool)" : str(order_info.is_coinm),
+        "is_entry(bool)" : str(order_info.is_entry),
+        "is_close(bool)" : str(order_info.is_close),
+        "is_buy(bool)" : str(order_info.is_buy),
+        "is_sell(bool)" : str(order_info.is_sell),
+        "is_contract(bool)" : str(order_info.is_contract),
+        "contract_size(float)" : str(order_info.contract_size),
+        "margin_mode(str)" : str(order_info.margin_mode),
+        "mode(str)" : str(order_info.mode),
+        "price_L1" : str(order_info.price_L1),
+        "price_L2" : str(order_info.price_L2),
+        "price_L3" : str(order_info.price_L3),
+        "price_L4" : str(order_info.price_L4),
+        "price_S1" : str(order_info.price_S1),
+        "price_S2" : str(order_info.price_S2),
+        "price_S3" : str(order_info.price_S3),
+        "price_S4" : str(order_info.price_S4),
+        "price_LC" : str(order_info.price_LC),
+        "price_SC" : str(order_info.price_SC),
+        }
+    return res
+
+#endregion 디버그용
+
+
+
+
+
+
+
+
 #region Hatiko용 Flag, 전역변수
 KILL_CONFIRM = True # 시간차 시장가청산 사용 여부
 KILL_MINUTE = 10 # 시간차 시장가 청산 기능에서 대기 시간(분)
@@ -576,6 +633,7 @@ async def hatiko(hatikoOrder: HatikoOrder, background_tasks: BackgroundTasks):
         return "Invalid exchange."
 
     if hatikoOrder.mode is not None:
+        order_info_list = []
         # Divide HatikoOrder to each order_info
         for price_key, order_name_map in hatikoOrder.order_name_map.items():
             price_value = getattr(hatikoOrder, price_key)
@@ -584,12 +642,14 @@ async def hatiko(hatikoOrder: HatikoOrder, background_tasks: BackgroundTasks):
                 order_info.price = price_value
                 order_info.order_name = order_name_map.get(hatikoOrder.mode, "")
                 if not order_info.order_name:
-                    await hatikoBase(order_info, hatikoInfo, background_tasks)
+                    order_info_list.append(order_info)
+        for order_info in order_info_list:
+            await hatikoBase(order_info, hatikoInfo, background_tasks)
+        return "[HatikoOrder Version] Hatiko Complete!!!"
     else:
         await hatikoBase(hatikoOrder, hatikoInfo, background_tasks)
-
-
-
+        return "[MarketOrder Version] Hatiko Complete!!!"
+    
 async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background_tasks: BackgroundTasks):
     """
     지정가 Hatiko 전략
