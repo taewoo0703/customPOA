@@ -51,11 +51,16 @@ def get_error(e):
 @app.on_event("startup")
 async def startup():
     log_message(f"POABOT 실행 완료! - 버전:{VERSION}")
+    # by PTW
+    load_hi_objects_on_startup()
 
 
 @app.on_event("shutdown")
 async def shutdown():
     db.close()
+    # by PTW
+    save_hi_objects_on_shutdown()
+
 
 
 whitelist = ["52.89.214.238", "34.212.75.30", "54.218.53.128", "52.32.178.7", "127.0.0.1"]
@@ -307,6 +312,7 @@ async def hedge(hedge_data: HedgeData, background_tasks: BackgroundTasks):
 # by PTW
 ##############################################################################
 import asyncio
+import pickle
 
 #region Flags
 USE_DISCORD = False # Discord 사용 여부
@@ -454,27 +460,60 @@ async def set_kill_minute(minute: int):
 
 
 #region 각 거래소별 HatikoInfo
-HI_Binance_Spot     = HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0) 
-HI_Binance_Future   = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0)
-HI_OKX_Spot         = HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0)
-HI_OKX_Future       = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0)
-HI_Bitget_Spot      = HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0)
-HI_Bitget_Future    = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0)
-HI_Bybit_Spot       = HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0)
-HI_Bybit_Future     = HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0)
-
 hatikoInfoObjects = {
-    "binance_spot": HI_Binance_Spot,
-    "binance_future": HI_Binance_Future,
-    "okx_spot": HI_OKX_Spot,
-    "okx_future": HI_OKX_Future,
-    "bitget_spot": HI_Bitget_Spot,
-    "bitget_future": HI_Bitget_Future,
-    "bybit_spot": HI_Bybit_Spot,
-    "bybit_future": HI_Bybit_Future,
+    "binance_spot": HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
+    "binance_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
+    "okx_spot": HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
+    "okx_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
+    "bitget_spot": HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
+    "bitget_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
+    "bybit_spot": HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
+    "bybit_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
 }
 
 #endregion 각 거래소별 HatikoInfo
+
+
+#region HatikoInfo 객체 Save/Load 관련 함수
+
+# HI 객체 저장 디렉토리 경로
+HI_DIRECTORY = "./HatikoInfo/"
+
+# HI 객체 저장 파일 경로
+HI_FILE_PATH = os.path.join(HI_DIRECTORY, "hi_objects.pickle")
+
+# HI 객체를 파일에 저장하는 함수
+def save_hi_objects(hi_objects):
+    os.makedirs(HI_DIRECTORY, exist_ok=True)  # 디렉토리 생성 (이미 존재하면 무시)
+    with open(HI_FILE_PATH, 'wb') as file:
+        pickle.dump(hi_objects, file)
+
+# HI 객체를 파일에서 로드하는 함수
+def load_hi_objects():
+    try:
+        with open(HI_FILE_PATH, 'rb') as file:
+            return pickle.load(file)
+    except FileNotFoundError:
+        return None
+
+# FastAPI 서버 시작 시 HI 객체를 파일에서 로드하는 함수
+def load_hi_objects_on_startup():
+    global hatikoInfoObjects
+    loaded_hi_objects = load_hi_objects()
+    if loaded_hi_objects:
+        # 파일에서 HI 객체를 로드한 경우, 이를 HI 객체로 대체
+        hatikoInfoObjects = loaded_hi_objects
+
+# FastAPI 서버 종료 시 HI 객체를 파일에 저장하는 함수
+def save_hi_objects_on_shutdown():
+    # 서버 종료 시 HI 객체를 저장
+    hi_objects = {}
+    for key, value in hatikoInfoObjects.items():
+        hi_objects[key] = value
+    save_hi_objects(hi_objects)
+
+#endregion HatikoInfo 객체 Save/Load 관련 함수
+
 
 
 
@@ -615,21 +654,12 @@ def removeItemFromMultipleLists(item, *lists) -> bool:
 @ app.post("/hatiko")
 @ app.post("/")
 async def hatiko(hatikoOrder: HatikoOrder, background_tasks: BackgroundTasks):
-    global HI_Binance_Future, HI_Binance_Spot, HI_Bitget_Future, HI_Bitget_Spot, HI_Bybit_Future, HI_Bybit_Spot, HI_OKX_Future, HI_OKX_Spot
-    
-    exchange = hatikoOrder.exchange
-    is_spot = hatikoOrder.is_spot
-    hatikoInfo = None
+    global hatikoInfoObjects
+    exchange = hatikoOrder.exchange.lower()
+    market_type = "spot" if hatikoOrder.is_spot else "future"
 
-    if exchange == "BINANCE":
-        hatikoInfo = HI_Binance_Spot if is_spot else HI_Binance_Future
-    elif exchange == "BITGET":
-        hatikoInfo = HI_Bitget_Spot if is_spot else HI_Bitget_Future
-    elif exchange == "BYBIT":
-        hatikoInfo = HI_Bybit_Spot if is_spot else HI_Bybit_Future
-    elif exchange == "OKX":
-        hatikoInfo = HI_OKX_Spot if is_spot else HI_OKX_Future
-    else:
+    hatikoInfo = hatikoInfoObjects.get(f"{exchange}_{market_type}")
+    if hatikoInfo is None:
         return "Invalid exchange."
 
     if hatikoOrder.mode is not None:

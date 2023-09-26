@@ -591,40 +591,7 @@ class HatikoInfo:
             return res
 
     def resetHatikoInfo(self):        
-        # 지정가 Hatiko용 near시그널 딕셔너리
-        # base(종목명) : orderID_list(오더id 리스트)
-        self.nearLong1_dic = {}
-        self.nearLong2_dic = {}
-        self.nearLong3_dic = {}
-        self.nearLong4_dic = {}
-        self.nearShort1_dic = {}
-        self.nearShort2_dic = {}
-        self.nearShort3_dic = {}
-        self.nearShort4_dic = {}
-
-        # 지정가 Hatiko용 entry시그널 리스트
-        self.Long1_list = []
-        self.Long2_list = []
-        self.Long3_list = []
-        self.Long4_list = []
-        self.Short1_list = []
-        self.Short2_list = []
-        self.Short3_list = []
-        self.Short4_list = []
-
-        # 지정가 Hatiko용 무시할 시그널 리스트
-        self.nearLong1_ignore_list = []
-        self.nearLong2_ignore_list = []
-        self.nearLong3_ignore_list = []
-        self.nearLong4_ignore_list = []
-        self.nearShort1_ignore_list = []
-        self.nearShort2_ignore_list = []
-        self.nearShort3_ignore_list = []
-        self.nearShort4_ignore_list = []
-
-        # 지정가 Hatiko용 closePrice 딕셔너리
-        # base(종목명) : closePrice(청산가격)
-        self.closePrice_dic = {} # 미리청산 기능 사용 시 필요
+        self.__init__(self.nMaxLong, self.nMaxShort, self.nIgnoreLong, self.nIgnoreShort)
 
         return "Reset HatikoInfo Complete!!!"
     
