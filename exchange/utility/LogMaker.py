@@ -267,13 +267,29 @@ def log_alert_message(order_info: MarketOrder, result="성공"):
 # by PTW
 ################################################
 
-MESSAGE_TYPE_LITERAL = Literal["RECV_TRADINGVIEW", "ENTRY_SIGNAL", "CLOSE_SIGNAL", "CANCEL_ORDER", "IGNORE", "IGNORE_CANCEL" "ORDER_CLOSED", "ORDER_NAME_INCORRECT", "RECV_BUT_NO_ORDER"]
+MESSAGE_TYPE_LITERAL = Literal["RECV_TRADINGVIEW", "PROCESS_COMPLETE", "ORDER_COMPLETE","ENTRY_SIGNAL", "CLOSE_SIGNAL", "CANCEL_ORDER", "IGNORE", "IGNORE_CANCEL" "ORDER_CLOSED", "ORDER_NAME_INCORRECT", "RECV_BUT_NO_ORDER"]
 def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     embed = Embed(  
     title=order_info.order_name,
     description=f"{order_info.base} 기본 메세지",
     color=0xFFFFFF,
     )
+
+    # [공통] 시그널 정상 처리 완료
+    if msg_type == "PROCESS_COMPLETE":
+        embed = Embed(  
+            title=order_info.order_name,
+            description=f"{order_info.base} 시그널 정상 처리 완료",
+            color=0xFFFFFF,
+        )
+
+    # [공통] 주문 생성 완료
+    if msg_type == "ORDER_COMPLETE":
+        embed = Embed(  
+            title=order_info.order_name,
+            description=f"{order_info.base} 주문 생성 완료",
+            color=0xFFFFFF,
+        )
 
     # [Hatiko] entry 시그널 발생
     if msg_type == "ENTRY_SIGNAL":
