@@ -488,10 +488,10 @@ hatikoInfoObjects = {
 #region HatikoInfo 객체 Save/Load 관련 함수
 
 # HI 객체 저장 디렉토리 경로
-HI_DIRECTORY = "./HatikoInfo/"
+HI_DIRECTORY = "./data/"
 
 # HI 객체 저장 파일 경로
-HI_FILE_PATH = os.path.join(HI_DIRECTORY, "hi_objects.pickle")
+HI_FILE_PATH = os.path.join(HI_DIRECTORY, "hatikoinfo_objects.pickle")
 
 # HI 객체를 파일에 저장하는 함수
 def save_hi_objects(hi_objects):
