@@ -376,6 +376,17 @@ async def orderinfo(order_info: MarketOrder, background_tasks: BackgroundTasks):
 #endregion 유효성 검증 후의 order_info 보기 
 
 
+#region 모든 전역Flag 및 설정값 보기
+@ app.get("/view_globals")
+async def view_globals():
+    # 전역 스코프에서 대문자로만 이루어진 변수와 대문자와 밑줄로만 이루어진 변수를 찾아서 출력
+    uppercase_vars = {}
+    for var_name, var_value in globals().items():
+        if all(c.isupper() or c == '_' for c in var_name):
+            uppercase_vars[var_name] = var_value
+    return uppercase_vars
+#endregion 모든 전역Flag 및 설정값 보기
+
 
 #region ############################### Hatiko ###############################
 
