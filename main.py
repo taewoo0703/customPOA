@@ -729,6 +729,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
     isSettingFinish = False     # 매매전 ccxt 세팅 flag 
     orderID_list = []           # 오더id 리스트
     isCancelSuccess = False     # 미체결주문 취소성공 여부
+    isMissNextCandle = False    # NextCandle_LF/SF 시그널을 놓친 경우
     isReEntry = False           # 재진입 필요여부
     isOrderSuccess = False      # 주문 성공 여부
     amountCanceled = 0.0        # 주문 취소한 코인개수(NextCandle 및 Kill_Confirm에서 사용)
@@ -1016,6 +1017,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                         # NextCandle_LF가 씹힌 경우 미체결 주문 취소
                         if (order_info.price != hatikoInfo.closePrice_dic.get(order_info.base)):
                             bot.client.cancel_order(open_order["id"], symbol)
+                            isMissNextCandle = True
                             isCancelSuccess = True
                     else: # 기존 매수주문 취소
                         bot.client.cancel_order(open_order["id"], symbol)
@@ -1072,7 +1074,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                             # background_tasks.add_task(log, exchange_name, order_result, order_info)
 
                 # 미체결 주문 취소한 것도 없고, 새로 청산주문할 것도 없는 경우 알람 발생
-                if not isCancelSuccess and not isOrderSuccess:
+                if not isMissNextCandle and not isOrderSuccess:
                     # background_tasks.add_task(log_custom_message, order_info, "CLOSE_SIGNAL")
                     log_custom_message(order_info, "CLOSE_SIGNAL")
 
