@@ -1074,7 +1074,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                             # background_tasks.add_task(log, exchange_name, order_result, order_info)
 
                 # 미체결 주문 취소한 것도 없고, 새로 청산주문할 것도 없는 경우 알람 발생
-                if not isMissNextCandle and not isOrderSuccess:
+                if not isMissNextCandle and not isOrderSuccess and hatikoInfo.closePrice_dic.get(order_info.base) is not None:
                     # background_tasks.add_task(log_custom_message, order_info, "CLOSE_SIGNAL")
                     log_custom_message(order_info, "CLOSE_SIGNAL")
 
@@ -1163,11 +1163,13 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
 
         except TypeError as e:
             error_msg = get_error(e)
+            log_message(f"[{order_info.base}] : {order_info.order_name} 에러 발생")
             log_order_error_message("\n".join(error_msg), order_info)
             # background_tasks.add_task(log_order_error_message, "\n".join(error_msg), order_info)
 
         except Exception as e:
             error_msg = get_error(e)
+            log_message(f"[{order_info.base}] : {order_info.order_name} 에러 발생")
             log_order_error_message("\n".join(error_msg), order_info)
             # background_tasks.add_task(log_error, "\n".join(error_msg), order_info)
 
