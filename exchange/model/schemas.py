@@ -382,6 +382,18 @@ class HatikoOrder(MarketOrder):
         "price_SC": {"Close": "close_Shorts", "NextCandle": "NextCandle_SF"},
         }
 
+    @validator("is_entry")
+    def is_entry_validate(cls, v, values):
+        if values["is_futures"] and values["order_name"] in HatikoInfo.nearSignal_list:
+            v = True # entry_order
+        return v
+
+    @validator("is_close")
+    def is_close_validate(cls, v, values):
+        if values["is_futures"] and values["order_name"] in (HatikoInfo.closeSignal_list + HatikoInfo.nextSignal_list + HatikoInfo.nextCloseSignal_list):
+            v = True # close_order
+        return v
+
 class IndividualOrder:
     """
     MarketOrder와 동일한 파라미터 이름을 가진 "인스턴스" 멤버변수를 가지고 있다.
