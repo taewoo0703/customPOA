@@ -384,13 +384,13 @@ class HatikoOrder(MarketOrder):
 
     @validator("is_entry")
     def is_entry_validate(cls, v, values):
-        if values["is_futures"] and values["order_name"] in HatikoInfo.nearSignal_list:
+        if values["is_futures"] and values["mode"] == "Near":
             v = True # entry_order
         return v
 
     @validator("is_close")
     def is_close_validate(cls, v, values):
-        if values["is_futures"] and values["order_name"] in (HatikoInfo.closeSignal_list + HatikoInfo.nextSignal_list + HatikoInfo.nextCloseSignal_list):
+        if values["is_futures"] and values["mode"] in ("NextCandle", "Close"):
             v = True # close_order
         return v
 
