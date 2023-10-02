@@ -382,17 +382,27 @@ class HatikoOrder(MarketOrder):
         "price_SC": {"Close": "close_Shorts", "NextCandle": "NextCandle_SF"},
         }
 
-    @validator("is_entry", pre=True)
-    def is_entry_validate(cls, v, values):
-        if values["is_futures"] and values["mode"] == "Near":
-            values["is_entry"] = True # entry_order
-        return v
+    # @validator("is_entry", pre=True)
+    # def is_entry_validate(cls, v, values):
+    #     if values["is_futures"] and values["mode"] == "Near":
+    #         values["is_entry"] = True # entry_order
+    #     return v
 
-    @validator("is_close", pre=True)
-    def is_close_validate(cls, v, values):
-        if values["is_futures"] and values["mode"] in ("NextCandle", "Close"):
-            values["is_close"] = True # close_order
-        return v
+    # @validator("is_close", pre=True)
+    # def is_close_validate(cls, v, values):
+    #     if values["is_futures"] and values["mode"] in ("NextCandle", "Close"):
+    #         values["is_close"] = True # close_order
+    #     return v
+    
+    @root_validator(pre=True)
+    def root_validate(cls, values):
+        super().root_validate(values)
+        if values["is_futures"]:
+            if values["mode"] == "Near":
+                values["is_entry"] = True # entry_order
+            elif values["mode"] in ("NextCandle", "Close"):
+                values["is_close"] = True # close_order
+        return values
 
 class IndividualOrder:
     """
