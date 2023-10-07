@@ -767,6 +767,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                 exchange_name = order_info.exchange
                 bot = get_bot(exchange_name, order_info.kis_number)
                 bot.init_info(order_info)
+                log_message(f"order_info.is_contract : {order_info.is_contract}") if LOG else None
 
                 # 3. 지정가 Entry 주문
                 if bot.order_info.is_entry or (bot.order_info.is_spot and bot.order_info.is_buy):
