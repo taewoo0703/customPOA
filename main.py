@@ -635,8 +635,12 @@ def getMinMaxQty(bot, order_info: MarketOrder) -> (float, float):
         max_amount = max_amount # bitget은 최대수량이 없음
         min_amount = min_amount # bitget은 최소수량이 없음
     elif order_info.exchange == "OKX":
-        max_amount = float(market["info"]["maxLmtSz"]) if float(market["info"]["maxLmtSz"]) > max_amount else max_amount
-        min_amount = float(market["info"]["minSz"]) if float(market["info"]["minSz"]) > min_amount else min_amount
+        if order_info.is_spot:
+            max_amount = float(market["info"]["maxLmtSz"]) if float(market["info"]["maxLmtSz"]) > max_amount else max_amount
+            min_amount = float(market["info"]["minSz"]) if float(market["info"]["minSz"]) > min_amount else min_amount
+        if order_info.is_futures:
+            max_amount = float(market["info"]["maxLmtSz"])  # future는 계약 단위이기 때문
+            min_amount = float(market["info"]["minSz"])     # future는 계약 단위이기 때문
     
     return max_amount, min_amount
             
