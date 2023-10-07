@@ -1150,7 +1150,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                             log_message(f"len(close_amount_list) : {len(close_amount_list)}") if LOG else None
 
                     # 청산가는 현재가 * 0.95
-                    close_price = bot.get_price(symbol) * 0.95
+                    # close_price = bot.get_price(symbol) * 0.95
                     isSettingFinish = True
 
                     # 청산 주문
@@ -1161,7 +1161,9 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                         else :
                             # order_result = bot.future.create_order(symbol, "limit", side, close_amount, close_price, params = { "reduceOnly": True })
                             log_message(f"close_amount : {close_amount}") if LOG else None
-                            order_result = bot.limit_order(order_info, close_amount, close_price)
+                            updateOrderInfo(order_info, amount=close_amount)
+                            order_result = bot.market_order(order_info)
+                            # order_result = bot.limit_order(order_info, close_amount, close_price)
                             isOrderSuccess = True
                             nComplete += 1
                             updateOrderInfo(order_info, amount = close_amount)
