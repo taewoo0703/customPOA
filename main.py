@@ -1166,8 +1166,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                             # order_result = bot.limit_order(order_info, close_amount, close_price)
                             isOrderSuccess = True
                             nComplete += 1
-                            updateOrderInfo(order_info, amount = close_amount)
-                            log_custom_message(order_info, "ORDER_COMPLETE") if USE_DISCORD else None
+                            log_custom_message(order_info, "ORDER_COMPLETE")
                             # background_tasks.add_task(log, exchange_name, order_result, order_info)
 
             else:
