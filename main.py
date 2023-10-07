@@ -678,6 +678,13 @@ async def hatiko(hatikoOrder: HatikoOrder, background_tasks: BackgroundTasks):
         return "Invalid exchange."
 
     if hatikoOrder.mode is not None:
+        # okx는 선물과 현물이 같은 지갑을 공유하기 때문에 둘 중에 하나가 진입 중일때 나머지 시장에 대한 near 시그널을 무시해야 한다.
+        if hatikoOrder.exchange == "OKX" and hatikoOrder.mode == "Near":
+            if hatikoOrder.is_spot and hatikoInfoObjects["okx_future"].countNearSignal() > 0:
+                return "Ignore near signal"
+            if hatikoOrder.is_futures and hatikoInfoObjects["okx_spot"].countNearSignal() > 0:
+                return "Ignore near signal"
+
         order_info_list = []
         # Divide HatikoOrder to each order_info
         for price_key, order_name_map in hatikoOrder.order_name_map.items():
@@ -781,7 +788,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
 
                     if not isSettingFinish:   # 초기 세팅
                         symbol = order_info.unified_symbol
-                        if order_info.is_futures and order_info.leverage is not None: 
+                        if order_info.is_futures and order_info.leverage is not None:
                             bot.set_leverage(order_info.leverage, symbol)
 
                         # 진입수량 설정
