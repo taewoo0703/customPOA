@@ -331,6 +331,8 @@ class Okx:
                 cash = total_bal / 4.0 / nMaxLong     # 총 자본을 4분할 + nMaxLong종목 몰빵
                 cash = cash * 100.0 / liquidationMDD  # 청산당할 MDD 고려
                 result = cash / self.order_info.price
+                if self.order_info.is_contract:
+                    result = result // self.order_info.contract_size
 
             # Short Entry
             if self.order_info.is_entry and self.order_info.side in ("sell"):
@@ -338,6 +340,8 @@ class Okx:
                 cash = total_bal / 4.0 / nMaxShort    # 총 자본을 4분할 + nMaxShort종목 몰빵
                 cash = cash * 100.0 / 150.0  # 청산당할 MDD를 150%로 설정하기 때문에 100/150을 곱함.
                 result = cash / self.order_info.price
+                if self.order_info.is_contract:
+                    result = result // self.order_info.contract_size
 
             # Long Exit & Short Exit
             if self.order_info.is_close:
