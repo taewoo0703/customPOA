@@ -880,26 +880,31 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                 for orderID in orderID_list_old:
                     log_message(f"orderID : {orderID}") if LOG else None
                     # 미체결 주문 취소
-                    order = bot.client.fetch_order(orderID, symbol)
-                    log_message(f"order['status'] : {order['status']}") if LOG else None
-                    if order["status"] == "canceled":
-                        isCancelSuccess = True
-                        amountCanceled = order["remaining"]
-                        sideCanceled = order["side"]
-                    elif order["status"] == "open":
-                        isReEntry = True
-                        resultCancel = bot.client.cancel_order(orderID, symbol)
-                        log_message(f"resultCancel['status'] : {resultCancel['status']}") if LOG else None
-                        await asyncio.sleep(0.1) if exchange_name == "BITGET" else None # 비트겟은 취소 후 바로 orderStatus를 조회하면 취소가 안된 상태로 조회됨
-                        orderAfterCancel = bot.client.fetch_order(orderID, symbol)
-                        log_message(f"orderAfterCancel['status'] : {orderAfterCancel['status']}") if LOG else None
-                        if orderAfterCancel["status"] == "canceled":
+                    for i in range(5):
+                        if amountCanceled > 0:
+                            break
+                        order = bot.client.fetch_order(orderID, symbol)
+                        log_message(f"order['status'] : {order['status']}") if LOG else None
+                        if order["status"] == "canceled":
                             isCancelSuccess = True
-                            amountCanceled = orderAfterCancel["remaining"]
-                            sideCanceled = orderAfterCancel["side"]
-                            # [Debug] 미체결 주문 취소 후 알람 발생
-                            log_custom_message(order_info, "CANCEL_ORDER") if USE_DISCORD else None
-                            # background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER") if USE_DISCORD else None
+                            amountCanceled = order["remaining"]
+                            sideCanceled = order["side"]
+                        elif order["status"] == "open":
+                            isReEntry = True
+                            resultCancel = bot.client.cancel_order(orderID, symbol)
+                            log_message(f"resultCancel['status'] : {resultCancel['status']}") if LOG else None
+                            if exchange_name == "BINANCE":
+                                orderAfterCancel = resultCancel
+                            else:
+                                orderAfterCancel = bot.client.fetch_order(orderID, symbol)
+                            log_message(f"orderAfterCancel['status'] : {orderAfterCancel['status']}") if LOG else None
+                            if orderAfterCancel["status"] == "canceled":
+                                isCancelSuccess = True
+                                amountCanceled = orderAfterCancel["remaining"]
+                                sideCanceled = orderAfterCancel["side"]
+                                # [Debug] 미체결 주문 취소 후 알람 발생
+                                log_custom_message(order_info, "CANCEL_ORDER") if USE_DISCORD else None
+                                # background_tasks.add_task(log_custom_message, order_info, "CANCEL_ORDER") if USE_DISCORD else None
 
                     if isReEntry and order_info.base in near_dic: # asyncio.sleep(0.1) 때문에 NextCandle 로직 중에 비동기로 이미 Close 주문을 행사한 경우 재주문 방지
                         # 재주문 
@@ -912,6 +917,8 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                         updateOrderInfo(order_info, amount=amountCanceled, side=sideCanceled)
                         log_custom_message(order_info, "ORDER_COMPLETE") if USE_DISCORD else None
                         # background_tasks.add_task(log, exchange_name, order_result, order_info) if USE_DISCORD else None
+                        amountCanceled = 0.0
+                        sideCanceled = ""
 
                 # 3. near_dic 오더id 업데이트
                 if isCancelSuccess:
@@ -1027,7 +1034,8 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                     # 미리 청산한 주문인 경우
                     if (open_order["side"] == "sell" and order_info.is_sell) or (open_order["side"] == "buy" and order_info.is_buy):
                         # NextCandle_LF가 씹힌 경우 미체결 주문 취소
-                        if (order_info.price != hatikoInfo.closePrice_dic.get(order_info.base)):
+                        # 선물인 경우, free_balance 조회가 불가능해서 무조건 취소
+                        if (order_info.price != hatikoInfo.closePrice_dic.get(order_info.base) or order_info.is_future):
                             bot.client.cancel_order(open_order["id"], symbol)
                             isMissNextCandle = True
                             isCancelSuccess = True
