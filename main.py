@@ -1038,7 +1038,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                     if (open_order["side"] == "sell" and order_info.is_sell) or (open_order["side"] == "buy" and order_info.is_buy):
                         # NextCandle_LF가 씹힌 경우 미체결 주문 취소
                         # 선물인 경우, free_balance 조회가 불가능해서 무조건 취소
-                        if (order_info.price != hatikoInfo.closePrice_dic.get(order_info.base) or order_info.is_future):
+                        if (order_info.price != hatikoInfo.closePrice_dic.get(order_info.base) or order_info.is_futures):
                             bot.client.cancel_order(open_order["id"], symbol)
                             isMissNextCandle = True
                             isCancelSuccess = True
