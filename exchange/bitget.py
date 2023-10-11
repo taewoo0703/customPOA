@@ -301,8 +301,8 @@ class Bitget:
     # 나머지는 동일
     def get_futures_position_hatiko(self, symbol=None):
         positions = self.client.fetch_positions([symbol])
-        long_contracts = None
-        short_contracts = None
+        long_contracts = 0
+        short_contracts = 0
 
         if positions:
             if isinstance(positions, list):

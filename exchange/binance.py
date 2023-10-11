@@ -439,8 +439,8 @@ class Binance:
         else:
             positions = self.client.fetch_positions(symbols=[symbol])
 
-        long_contracts = None
-        short_contracts = None
+        long_contracts = 0
+        short_contracts = 0
         if positions:
             if self.order_info.is_coinm:
                 for position in positions:
