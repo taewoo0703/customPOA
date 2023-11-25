@@ -29,7 +29,7 @@ import os
 import sys
 from devtools import debug
 
-VERSION = "POA : 0.1.1, Hatiko : 231007"
+VERSION = "POA : 0.1.1, Hatiko : 231125"
 app = FastAPI(default_response_class=ORJSONResponse)
 
 
@@ -900,7 +900,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                             log_message(f"orderAfterCancel['status'] : {orderAfterCancel['status']}") if LOG else None
                             if orderAfterCancel["status"] == "canceled":
                                 isCancelSuccess = True
-                                amountCanceled = orderAfterCancel["remaining"]
+                                amountCanceled = orderAfterCancel["remaining"] if not (exchange_name == "BYBIT" and orderinfo.is_futures) else order["remaining"]
                                 sideCanceled = orderAfterCancel["side"]
                                 # [Debug] 미체결 주문 취소 후 알람 발생
                                 log_custom_message(order_info, "CANCEL_ORDER") if USE_DISCORD else None
