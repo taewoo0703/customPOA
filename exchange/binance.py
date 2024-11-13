@@ -500,7 +500,8 @@ class Binance:
             return 0
     
     # limit 오더 함수
-    # market_order 함수를 최대한 활용함 (market_close와 겸용으로 사용)
+    # market_order와 market_entry, market_close 함수를 최대한 활용함 (market_close와 겸용으로 사용)
+    # hedge 모드 관련 코드 모두 삭제,     
     def limit_order(self, order_info: MarketOrder, amount: float, price: float):
         from exchange.pexchange import retry
 
@@ -509,18 +510,6 @@ class Binance:
         if order_info.is_futures and order_info.is_close:
             if self.position_mode == "one-way":
                 params = {"reduceOnly": True}
-            elif self.position_mode == "hedge":
-                if order_info.side == "buy":
-                    if order_info.is_entry:
-                        positionSide = "LONG"
-                    elif order_info.is_close:
-                        positionSide = "SHORT"
-                elif order_info.side == "sell":
-                    if order_info.is_entry:
-                        positionSide = "SHORT"
-                    elif order_info.is_close:
-                        positionSide = "LONG"
-                params = {"positionSide": positionSide}
 
         try:
             return retry(

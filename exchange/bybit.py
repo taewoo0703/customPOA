@@ -381,31 +381,24 @@ class Bybit:
             return 0
         
     # limit 오더 함수
-    # market_order 함수를 최대한 활용함 (market_close와 겸용으로 사용)
+    # market_order와 market_entry, market_close 함수를 최대한 활용함 (market_close와 겸용으로 사용)
+    # hedge 모드 관련 코드 모두 삭제, 
+    # set_leverage는 hatiko의 경우 main에서 해주긴 하는데 기존 코드와의 유사성을 위해 남김
     def limit_order(self, order_info: MarketOrder, amount: float, price: float):   
         from exchange.pexchange import retry
 
         symbol = order_info.unified_symbol
         params = {}
-        if order_info.is_futures and order_info.is_close:
-            if self.position_mode == "one-way":
-                params = {"reduceOnly": True, "position_idx": 0}
-            elif self.position_mode == "hedge":
-                if order_info.side == "buy":
-                    if order_info.is_entry:
-                        position_idx = 1
-                        params = {"position_idx": position_idx}
-                    elif order_info.is_close:
-                        position_idx = 2
-                        params = {"reduceOnly": True, "position_idx": position_idx}
-                elif order_info.side == "sell":
-                    if order_info.is_entry:
-                        position_idx = 2
-                        params = {"position_idx": position_idx}
-                    elif order_info.is_close:
-                        position_idx = 1
-                        params = {"reduceOnly": True, "position_idx": position_idx}
-        
+        if order_info.is_futures:
+            if order_info.is_entry:
+                if self.position_mode == "one-way":
+                    params = {"position_idx": 0}
+                if order_info.leverage is not None:
+                    self.set_leverage(order_info.leverage, symbol)
+            elif order_info.is_close:
+                if self.position_mode == "one-way":
+                    params = {"reduceOnly": True, "position_idx": 0}
+
         try:
             return retry(
                 self.client.create_order,
@@ -420,6 +413,7 @@ class Bybit:
                 delay=0.1,
                 instance=self,
             )
+        
         except Exception as e:
             raise error.OrderError(e, order_info)
 
