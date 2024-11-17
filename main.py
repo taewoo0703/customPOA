@@ -981,8 +981,8 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                     if isReEntry and amountCanceled > 0 and order_info.base in near_dic: # asyncio.sleep(0.1) 때문에 NextCandle 로직 중에 비동기로 이미 Close 주문을 행사한 경우 재주문 방지
                         # 재주문 
                         log_message(f"symbol : {symbol}, sideCanceled : {sideCanceled}, amountCanceled : {amountCanceled}, price : {order_info.price}") if LOG else None
-                        order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
-                        # order_result = bot.limit_order(order_info, amountCanceled, order_info.price)
+                        # order_result = bot.client.create_order(symbol, "limit", sideCanceled, amountCanceled, order_info.price)
+                        order_result = bot.limit_order(order_info, amountCanceled, order_info.price)
                         isReEntry = False
                         orderID_list.append(order_result["id"])
 
