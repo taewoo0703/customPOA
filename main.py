@@ -886,7 +886,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                         # order_result = bot.client.create_order(symbol, "limit", side, abs(entry_amount), entry_price)
                         log_message(f"entry_amount {i} : {entry_amount}") if LOG else None
                         order_result = bot.limit_order(order_info, entry_amount, entry_price)   # 실패 시 재시도는 bot.limit_order 안에서 처리
-                        log_message(f"orderID : {order_result["id"]}") if LOG else None
+                        log_message(f"orderID : {order_result['id']}") if LOG else None
                         orderID_list.append(order_result["id"])
                         nComplete += 1
                         # 디스코드 로그생성
