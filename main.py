@@ -925,9 +925,17 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                     order_info.is_close = None
                     order_info.is_buy = None if order_info.is_buy else True
                     order_info.is_sell = None if order_info.is_sell else True
+                    if order_info.side == "buy":
+                        order_info.side = "sell"
+                    elif order_info.side == "sell":
+                        order_info.side = "buy"
+
                 if order_info.is_spot:
-                    order_info.is_buy = None
-                    order_info.is_sell = True
+                    order_info.is_buy = True
+                    order_info.is_sell = None
+                    order_info.side = "buy"
+
+                log_message(f"orderinfo after tuning -> is_buy : {order_info.is_buy}, is_sell : {order_info.is_sell}, side = {order_info.side}") if LOG else None
 
                 # 1. 봉마감 후 재주문이 필요없으면 무시
                 near_dic = hatikoInfo.matchNearDic(order_info.order_name)
