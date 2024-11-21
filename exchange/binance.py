@@ -507,9 +507,12 @@ class Binance:
 
         symbol = order_info.unified_symbol  # self.parse_symbol(base, quote)
         params = {}
-        if order_info.is_futures and order_info.is_close:
-            if self.position_mode == "one-way":
-                params = {"reduceOnly": True}
+        if order_info.is_futures:
+            if order_info.is_entry and order_info.leverage is not None:
+                self.set_leverage(order_info.leverage, symbol)
+            if order_info.is_close:
+                if self.position_mode == "one-way":
+                    params = {"reduceOnly": True}
 
         try:
             return retry(

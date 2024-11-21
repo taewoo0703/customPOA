@@ -149,3 +149,4 @@ store.db
 pb_data/logs.db*
 pb_data/data.db-*
 pb_migrations/
+.idea
