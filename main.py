@@ -853,8 +853,6 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
 
                     if not isSettingFinish:   # 초기 세팅
                         symbol = order_info.unified_symbol
-                        if order_info.is_futures and order_info.leverage is not None:
-                            bot.set_leverage(order_info.leverage, symbol)
 
                         # 진입수량 설정
                         entryRate = hatikoInfo.calcEntryRate(hatikoInfo.nMaxLong, safetyMarginPercent=1) if order_info.is_spot else 0 # entryCash / FreeCash  # 현물에서 사용
