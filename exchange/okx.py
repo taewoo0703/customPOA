@@ -482,9 +482,7 @@ class Okx:
         if order_info.is_spot:
             params = {"tgtCcy": "base_ccy"}
         elif order_info.is_futures and order_info.is_entry:
-            if order_info.leverage is None:
-                self.set_leverage(1, symbol)
-            else:
+            if order_info.leverage is not None:
                 self.set_leverage(order_info.leverage, symbol)
             if order_info.margin_mode is None:
                 params |= {"tdMode": "cross"}
