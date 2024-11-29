@@ -75,3 +75,7 @@ class OrderError(Exception):
                 side = "매도"
 
         super().__init__(f"[{side} 주문 오류]\n{msg}", *args, **kwargs)
+
+class UnSupportedFeatureError(Exception):
+    def __init__(self, msg="", *args, **kwargs):
+        super().__init__(f"[기능 지원하지 않음]\n{msg}", *args, **kwargs)

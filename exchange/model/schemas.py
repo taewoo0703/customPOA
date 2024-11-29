@@ -5,7 +5,7 @@ from pathlib import Path
 from enum import Enum
 from devtools import debug
 
-CRYPTO_LITERAL = Literal["BINANCE", "UPBIT", "BYBIT", "BITGET", "OKX"]
+CRYPTO_LITERAL = Literal["BINANCE", "UPBIT", "BYBIT", "BITGET", "OKX", "MEXC"]
 
 
 STOCK_LITERAL = Literal[
@@ -22,6 +22,7 @@ EXCHANGE_LITERAL = Literal[
     "BYBIT",
     "BITGET",
     "OKX",
+    "MEXC",
     "KRX",
     "NASDAQ",
     "NYSE",
@@ -56,7 +57,7 @@ def find_env_file():
 env_path = find_env_file()
 
 
-CRYPTO_EXCHANGES = ("BINANCE", "UPBIT", "BYBIT", "BITGET", "OKX")
+CRYPTO_EXCHANGES = ("BINANCE", "UPBIT", "BYBIT", "BITGET", "OKX", "MEXC")
 
 STOCK_EXCHANGES = (
     "KRX",
@@ -102,6 +103,8 @@ class Settings(BaseSettings):
     OKX_KEY: str | None = None
     OKX_SECRET: str | None = None
     OKX_PASSPHRASE: str | None = None
+    MEXC_KEY: str | None = None
+    MEXC_SECRET: str | None = None
     KIS1_ACCOUNT_NUMBER: str | None = None
     KIS1_ACCOUNT_CODE: str | None = None
     KIS1_KEY: str | None = None
@@ -331,8 +334,8 @@ class HedgeData(BaseModel):
 
 class ArbiData(BaseModel):
     password: str
-    exchange_long: Literal["BINANCE", "BYBIT", "BITGET", "OKX"]
-    exchange_short: Literal["BINANCE", "BYBIT", "BITGET", "OKX"]
+    exchange_long: Literal["BINANCE", "BYBIT", "BITGET", "OKX", "MEXC"]
+    exchange_short: Literal["BINANCE", "BYBIT", "BITGET", "OKX", "MEXC"]
     base: str
     quote: QUOTE_LITERAL = "USDT.P"
     amount: float | None = None

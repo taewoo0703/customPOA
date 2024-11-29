@@ -545,6 +545,8 @@ hatikoInfoObjects = {
     "bitget_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
     "bybit_spot": HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
     "bybit_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
+    "mexc_spot": HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
+    "mexc_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
 }
 
 #endregion 각 거래소별 HatikoInfo
@@ -690,7 +692,7 @@ def getMinMaxQty(bot, order_info: MarketOrder) -> (float, float):
     min_amount = min_cash / price
 
     market = bot.client.market(order_info.unified_symbol)
-    if order_info.exchange in "BINANCE":
+    if order_info.exchange == "BINANCE":
         max_amount = market["limits"]["amount"]["max"] if market["limits"]["amount"]["max"] > max_amount else max_amount
         min_amount = market["limits"]["amount"]["min"] if market["limits"]["amount"]["min"] > min_amount else min_amount
     elif order_info.exchange == "BYBIT":
@@ -706,6 +708,13 @@ def getMinMaxQty(bot, order_info: MarketOrder) -> (float, float):
         if order_info.is_futures:
             max_amount = float(market["info"]["maxLmtSz"])  # future는 계약 단위이기 때문
             min_amount = float(market["info"]["minSz"])     # future는 계약 단위이기 때문
+    elif order_info.exchange == "MEXC":
+        if order_info.is_spot:
+            max_amount = max_amount # mexc는 최대수량이 없음
+            min_amount = market["limits"]["amount"]["min"] if market["limits"]["amount"]["min"] > min_amount else min_amount
+        if order_info.is_futures:
+            max_amount = market["limits"]["amount"]["max"] if market["limits"]["amount"]["max"] > max_amount else max_amount
+            min_amount = market["limits"]["amount"]["min"] if market["limits"]["amount"]["min"] > min_amount else min_amount
     
     return max_amount, min_amount
             

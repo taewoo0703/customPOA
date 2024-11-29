@@ -345,7 +345,6 @@ class Bitget:
     # limit 오더 함수
     # market_order와 market_entry, market_close 함수를 최대한 활용함 (market_close와 겸용으로 사용)
     # hedge 모드 관련 코드 모두 삭제, 
-    # set_leverage는 hatiko의 경우 main에서 해주긴 하는데 기존 코드와의 유사성을 위해 남김
     # 마진모드는 cross를 기본으로 지향한다.
     def limit_order(self, order_info: MarketOrder, amount: float, price: float):
         from exchange.pexchange import retry
