@@ -29,7 +29,7 @@ import os
 import sys
 from devtools import debug
 
-VERSION = "POA : 0.1.6, Hatiko : 241129 (mexc update)"
+VERSION = "POA : 0.1.6, Hatiko : 241202 (market reload update)"
 app = FastAPI(default_response_class=ORJSONResponse)
 
 
@@ -451,6 +451,25 @@ async def view_globals():
             uppercase_vars[var_name] = var_value
     return uppercase_vars
 #endregion 모든 전역Flag 및 설정값 보기
+
+#region utils
+@ app.get("/reload_markets")
+async def reload_markets():
+    exchange_set = {"BINANCE", "OKX", "BITGET", "BYBIT", "MEXC", "UPBIT"}
+    sucess_list = "["
+    for exchange_name in exchange_set:
+        try:
+            bot = get_bot(exchange_name)
+            bot.client.load_markets(reload=True)
+        except:
+            log_message(f"Reload Markets Failed - {exchange_name}")
+        else:
+            sucess_list += f"{exchange_name} "
+    sucess_list += "]"
+    log_message(f"Reload Markets Complete!!! - {sucess_list}")
+    return "Reload Markets Complete!!!"
+
+#endregion utils
 
 
 #region ############################### Hatiko ###############################
