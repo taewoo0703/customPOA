@@ -271,7 +271,7 @@ MESSAGE_TYPE_LITERAL = Literal["RECV_TRADINGVIEW", "PROCESS_COMPLETE", "ORDER_CO
 def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     embed = Embed(  
     title=order_info.order_name,
-    description=f"{order_info.base} 기본 메세지",
+    description=f"[{order_info.exchange}] {order_info.base} 기본 메세지",
     color=0xFFFFFF,
     )
 
@@ -279,7 +279,7 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     if msg_type == "PROCESS_COMPLETE":
         embed = Embed(  
             title=order_info.order_name,
-            description=f"{order_info.base} 시그널 정상 처리 완료",
+            description=f"[{order_info.exchange}] {order_info.base} 시그널 정상 처리 완료",
             color=0x00FF00,
         )
 
@@ -287,7 +287,7 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     if msg_type == "ORDER_COMPLETE":
         embed = Embed(  
             title=order_info.order_name,
-            description=f"{order_info.base} 주문 생성 완료",
+            description=f"[{order_info.exchange}] {order_info.base} 주문 생성 완료",
             color=0x0000FF,
         )
 
@@ -295,7 +295,7 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     if msg_type == "ENTRY_SIGNAL":
         embed = Embed(  
             title=order_info.order_name,
-            description=f"{order_info.base} 시그널 도착",
+            description=f"[{order_info.exchange}] {order_info.base} 시그널 도착",
             color=0xFFFFFF,
         )
 
@@ -303,7 +303,7 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     if msg_type == "CLOSE_SIGNAL":
         embed = Embed(  
             title=order_info.order_name,
-            description=f"{order_info.base} 청산 시그널 도착",
+            description=f"[{order_info.exchange}] {order_info.base} 청산 시그널 도착",
             color=0xFFFFFF,
         )
 
@@ -311,7 +311,7 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     if msg_type == "CANCEL_ORDER":
         embed = Embed(  
             title=order_info.order_name,
-            description=f"{order_info.base} 미체결 주문 취소",
+            description=f"[{order_info.exchange}] {order_info.base} 미체결 주문 취소",
             color=0xFFFFFF,
         )
 
@@ -319,7 +319,7 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     if msg_type == "IGNORE":
         embed = Embed(  
             title=order_info.order_name,
-            description=f"{order_info.base} 시그널 무시",
+            description=f"[{order_info.exchange}] {order_info.base} 시그널 무시",
             color=0xFFFFFF,
         )
     
@@ -327,7 +327,7 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     if msg_type == "IGNORE_CANCEL":
         embed = Embed(  
             title=order_info.order_name,
-            description=f"{order_info.base} 시그널 무시 해제",
+            description=f"[{order_info.exchange}] {order_info.base} 시그널 무시 해제",
             color=0xFFFFFF,
         )
 
@@ -335,7 +335,7 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     if msg_type == "ORDER_CLOSED":
         embed = Embed(  
             title=order_info.order_name,
-            description=f"{order_info.base} - 이미 체결된 주문",
+            description=f"[{order_info.exchange}] {order_info.base} - 이미 체결된 주문",
             color=0xFFFFFF,
         )
     
@@ -343,7 +343,7 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     if msg_type == "ORDER_NAME_INCORRECT":
         embed = Embed(  
             title=order_info.order_name,
-            description=f"order_name 이 맞지 않습니다. 확인 필요.",
+            description=f"[{order_info.exchange}] order_name 이 맞지 않습니다. 확인 필요.",
             color=0xFFFFFF,
         )
 
@@ -351,7 +351,7 @@ def log_custom_message(order_info: MarketOrder, msg_type: MESSAGE_TYPE_LITERAL):
     if msg_type == "RECV_BUT_NO_ORDER":
         embed = Embed(  
             title=order_info.order_name,
-            description=f"시그널은 발생했지만 entry_amount < 0 이라 주문X",
+            description=f"[{order_info.exchange}] 시그널은 발생했지만 entry_amount < 0 이라 주문X",
             color=0xFFFFFF,
         )
 
