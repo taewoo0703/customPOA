@@ -390,14 +390,11 @@ class Bybit:
         symbol = order_info.unified_symbol
         params = {}
         if order_info.is_futures:
-            if order_info.is_entry:
+            if order_info.is_entry and order_info.leverage is not None:
+                self.set_leverage(order_info.leverage, symbol)
+            if order_info.is_close:
                 if self.position_mode == "one-way":
-                    params = {"position_idx": 0}
-                if order_info.leverage is not None:
-                    self.set_leverage(order_info.leverage, symbol)
-            elif order_info.is_close:
-                if self.position_mode == "one-way":
-                    params = {"reduceOnly": True, "position_idx": 0}
+                    params = {"reduceOnly": True}
 
         try:
             return retry(

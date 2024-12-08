@@ -477,23 +477,15 @@ class Okx:
 
         symbol = order_info.unified_symbol  # self.parse_symbol(order_info.base, order_info.quote)
         params = {}
-
-        if order_info.is_spot:
-            params = {"tgtCcy": "base_ccy"}
-        elif order_info.is_futures and order_info.is_entry:
-            if order_info.leverage is not None:
-                self.set_leverage(order_info.leverage, symbol)
-            if order_info.margin_mode is None:
-                params |= {"tdMode": "cross"}
-            else:
-                params |= {"tdMode": order_info.margin_mode}
-        elif order_info.is_futures and order_info.is_close:
-            if self.position_mode == "one-way":
-                if self.order_info.margin_mode == "isolated":
-                    params = {"reduceOnly": True, "tdMode": "isolated"}
-                elif (self.order_info.margin_mode is None 
-                      or self.order_info.margin_mode == "cross"):
-                    params = {"reduceOnly": True, "tdMode": "cross"}
+        if order_info.is_futures :
+            margin_mode = order_info.margin_mode if order_info.margin_mode is not None else "cross"
+            params |= {"tdMode": margin_mode}
+            if order_info.is_entry:
+                if order_info.leverage is not None:
+                    self.set_leverage(order_info.leverage, symbol, order_info)
+            elif order_info.is_close:
+                if self.position_mode == "one-way":
+                    params |= {"reduceOnly": True}
 
         try:
             return retry(

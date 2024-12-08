@@ -455,7 +455,7 @@ async def view_globals():
 #region utils
 @ app.get("/reload_markets")
 async def reload_markets():
-    exchange_set = {"BINANCE", "OKX", "BITGET", "BYBIT", "MEXC", "UPBIT"}
+    exchange_set = {"BINANCE", "OKX", "BITGET", "BYBIT", "MEXC", "UPBIT", "GATE"}
     sucess_list = "["
     for exchange_name in exchange_set:
         try:
@@ -566,6 +566,8 @@ hatikoInfoObjects = {
     "bybit_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
     "mexc_spot": HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
     "mexc_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
+    "gate_spot": HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
+    "gate_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
 }
 
 #endregion 각 거래소별 HatikoInfo
@@ -734,6 +736,13 @@ def getMinMaxQty(bot, order_info: MarketOrder) -> (float, float):
         if order_info.is_futures:
             max_amount = market["limits"]["amount"]["max"] if market["limits"]["amount"]["max"] > max_amount else max_amount
             min_amount = market["limits"]["amount"]["min"] if market["limits"]["amount"]["min"] > min_amount else min_amount
+    elif order_info.exchange == "GATE":
+        if order_info.is_spot:
+            max_amount = max_amount # gate는 최대수량이 없음
+            min_amount = market["limits"]["amount"]["min"] if market["limits"]["amount"]["min"] > min_amount else min_amount
+        if order_info.is_futures:
+            max_amount = market["limits"]["amount"]["max"] # 계약 단위
+            min_amount = market["limits"]["amount"]["min"] # 계약 단위
     
     return max_amount, min_amount
             

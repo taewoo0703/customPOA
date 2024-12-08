@@ -351,24 +351,19 @@ class Bitget:
 
         symbol = order_info.unified_symbol
         params = {}
-
-        if order_info.is_spot:
-            # Copy market_order()
-            params = {}
-        elif order_info.is_futures:
+        if order_info.is_futures:
             if order_info.is_entry:
-                # Copy market_entry()
+                params = {"tradeSide": "Open"}
                 if self.position_mode == "one-way":
-                    params = { "oneWayMode": True }
-                    params |= { "marginMode": order_info.margin_mode or "cross" }
+                    params |= { "oneWayMode": True }
                 if order_info.margin_mode is not None:
                     self.client.set_margin_mode(order_info.margin_mode, symbol)
                 if order_info.leverage is not None:
-                    retry(self.set_leverage, order_info.leverage, symbol, order_info = order_info, instance = self)
+                    retry(self.set_leverage, order_info.leverage, symbol, order_info, order_info = order_info, instance = self)
             if order_info.is_close:
-                # Copy market_close()
+                params = {"tradeSide": "Close"}
                 if self.position_mode == "one-way":
-                    params = {"reduceOnly": True, "oneWayMode": True}
+                    params |= {"reduceOnly": True, "oneWayMode": True}
 
         try:
             return retry(
