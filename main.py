@@ -29,7 +29,7 @@ import os
 import sys
 from devtools import debug
 
-VERSION = "POA : 0.1.6, Hatiko : 241202 (market reload update)"
+VERSION = "POA : 0.1.6, Hatiko : 241208 (gate update)"
 app = FastAPI(default_response_class=ORJSONResponse)
 
 
@@ -699,7 +699,7 @@ def updateOrderInfo(order_info: MarketOrder, amount: float=None, percent: float=
     if order_name is not None:
         order_info.order_name = order_name
 
-def getMinMaxQty(bot, order_info: MarketOrder) -> (float, float):
+def getMinMaxQty(bot, order_info: MarketOrder) -> tuple[float]:
     """
     주문 시 최대, 최소 수량을 구하는 방법이 거래소마다 다름.
     max_amount : 지정가 주문 최대 코인개수 -> 100,000 달러를 기준으로 할까? -> 거래소에서 주는 값과 비교하여 높은 값으로 선정
