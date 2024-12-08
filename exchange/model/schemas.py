@@ -190,7 +190,7 @@ def parse_quote(quote: str):
 
 
 class OrderRequest(BaseModel):
-    exchange: EXCHANGE_LITERAL
+    exchange: EXCHANGE_LITERAL | Literal["GATEIO"]
     base: str
     quote: QUOTE_LITERAL
     # QUOTE
@@ -231,6 +231,9 @@ class OrderRequest(BaseModel):
         for key, value in values.items():
             if value in ("NaN", ""):
                 values[key] = None
+
+        if values["exchange"] == "GATEIO":
+            values["exchange"] = "GATE"
 
         values |= get_extra_order_info(values)
 
