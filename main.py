@@ -557,17 +557,17 @@ async def set_kill_minute(minute: int):
 #region 각 거래소별 HatikoInfo
 hatikoInfoObjects = {
     "binance_spot": HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
-    "binance_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
+    "binance_future": HatikoInfo(nMaxLong=4, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
     "okx_spot": HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
-    "okx_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
+    "okx_future": HatikoInfo(nMaxLong=4, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
     "bitget_spot": HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
-    "bitget_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
+    "bitget_future": HatikoInfo(nMaxLong=4, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
     "bybit_spot": HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
-    "bybit_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
+    "bybit_future": HatikoInfo(nMaxLong=4, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
     "mexc_spot": HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
-    "mexc_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
+    "mexc_future": HatikoInfo(nMaxLong=4, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
     "gate_spot": HatikoInfo(nMaxLong=10, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
-    "gate_future": HatikoInfo(nMaxLong=2, nMaxShort=1, nIgnoreLong=1, nIgnoreShort=0),
+    "gate_future": HatikoInfo(nMaxLong=4, nMaxShort=1, nIgnoreLong=0, nIgnoreShort=0),
 }
 
 #endregion 각 거래소별 HatikoInfo
