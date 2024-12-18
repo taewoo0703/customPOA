@@ -482,7 +482,7 @@ class Okx:
             params |= {"tdMode": margin_mode}
             if order_info.is_entry:
                 if order_info.leverage is not None:
-                    self.set_leverage(order_info.leverage, symbol, order_info)
+                    self.set_leverage(order_info.leverage, symbol)
             elif order_info.is_close:
                 if self.position_mode == "one-way":
                     params |= {"reduceOnly": True}

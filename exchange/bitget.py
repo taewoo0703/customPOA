@@ -359,7 +359,7 @@ class Bitget:
                 if order_info.margin_mode is not None:
                     self.client.set_margin_mode(order_info.margin_mode, symbol)
                 if order_info.leverage is not None:
-                    retry(self.set_leverage, order_info.leverage, symbol, order_info, order_info = order_info, instance = self)
+                    retry(self.set_leverage, order_info.leverage, symbol, order_info = order_info, instance = self)
             if order_info.is_close:
                 params = {"tradeSide": "Close"}
                 if self.position_mode == "one-way":
