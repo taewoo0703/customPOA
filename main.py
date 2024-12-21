@@ -992,7 +992,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                     for i in range(5):
                         if amountCanceled > 0:
                             break
-                        order = bot.client.fetch_order(orderID, symbol, params={"acknowledged": True})
+                        order = bot.fetch_order(orderID, symbol)
                         log_message(f"order['status'] : {order['status']}") if LOG else None
                         if order["status"] == "canceled":
                             isCancelSuccess = True
@@ -1008,7 +1008,7 @@ async def hatikoBase(order_info: MarketOrder, hatikoInfo: HatikoInfo, background
                                 orderAfterCancel = order
                                 orderAfterCancel["status"] = "canceled" # bybit futures에서는 취소 후 바로 fetch_order를 하면 status가 canceled로 나오지 않음
                             else:
-                                orderAfterCancel = bot.client.fetch_order(orderID, symbol, params={"acknowledged": True})
+                                orderAfterCancel = bot.fetch_order(orderID, symbol)
                             log_message(f"orderAfterCancel['status'] : {orderAfterCancel['status']}") if LOG else None
                             if orderAfterCancel["status"] == "canceled":
                                 isCancelSuccess = True

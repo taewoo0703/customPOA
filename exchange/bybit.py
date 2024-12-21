@@ -414,4 +414,6 @@ class Bybit:
         except Exception as e:
             raise error.OrderError(e, order_info)
 
-    
+    # fetch_order (거래소에 따라 params 다름)
+    def fetch_order(self, order_id: str, symbol: str):
+        return self.client.fetch_order(order_id, symbol, params={"acknowledged": True})
